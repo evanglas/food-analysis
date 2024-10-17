@@ -2,7 +2,7 @@ nutrient_nbr,id,name,unit_name,rank,target,ll,ul
 203,1003,Protein,G,600,,62.5,218.75
 204,1004,Total lipid (fat),G,800,,55.55555556,97.22222222
 205,1005,"Carbohydrate, by difference",G,1110,,281.25,406.25
-208,1008,Energy,KCAL,300,2500,,
+208,1008,Energy,KCAL,300,3500,,
 221,1018,"Alcohol, ethyl",G,18200,,,
 255,1051,Water,G,100,,,
 262,1057,Caffeine,MG,18300,,,400

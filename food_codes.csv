@@ -1,112 +1,112 @@
-food,fndds_code,name,price,lbs,multiplier,ndb_code
-Whole Grains,,,,,,
-Wheat flour,,"Wheat flour, whole-grain (Includes foods for USDA's Food Distribution Program)",24.49,50,,20080
-Enriched wheat flour,,"Wheat flour, white, all-purpose, enriched, bleached",23.99,50,,20081
-Brown rice,56205018,"Rice, brown, cooked, no added fat",21.99,25,3,
-Quinoa,56204005,"Quinoa, no added fat",55.49,25,3,
-Barley flour,,Barley flour or meal,33.18,50,,20130
-Corn flour,,"Corn flour, whole-grain, yellow",22.99,50,,20016
-White Rice,56205000,"Rice, Cooked, NFS",17.99,40,3,
-Sugar,91101000,"Sugar, NFS",44.99,50,,
-Oats,57602100,"Oats, raw",36.99,50,,
-Vegetables,,,,,,
-Tomatoes,74101000,"Tomatoes, raw",1.55,2,,
-Cucumber,75111000 ,"Cucumber, raw",1,1,,
-Zucchini,75128010 ,"Summer squash, green, raw",2.18,1.45,,
-Eggplant,75111200 ,"Eggplant, raw",1.5,1,,
-Red Bell Pepper,75122200 ,"Pepper, sweet, red, raw",2.5,1,,
-Peas,75120000,"Green peas, raw",1.09,0.75,,
-Green Bell Pepper,75122100 ,"Pepper, sweet, green, raw",2,1,,
-Carrots,73101010 ,"Carrots, raw",1.55,2,,
-Onions,75117020 ,"Onions, raw",3.19,3,,
-Garlic,75111500 ,"Garlic, raw",5,1,,
-Spinach,72125100 ,"Spinach, raw",1.65,0.5,,
-Corn,75109600,"Corn, raw",1.09,0.75,,
-Kale,72119190 ,"Kale, raw",3.48,1,,
-Swiss Chard,72104100,"Chard, raw",3,1,,
-Bok Choy,75104000 ,"Cabbage, Chinese, raw",1.5,1,,
-Brussels Sprouts,75102750 ,"Brussels sprouts, raw",1.55,0.75,,
-Lettuce,75113000 ,"Lettuce, raw",1,1,,
-Cabbage,75103000,"Cabbage, green, raw",0.75,1,,
-Broccoli,72201100 ,"Broccoli, raw",1.29,0.75,,
-Potatoes,71000100 ,"Potato, NFS",4.39,8,0.75,
-Sweet Potato,73401000 ,"Sweet potato, NFS",2.85,3,0.75,
-Cauliflower,75107000 ,"Cauliflower, raw",1.99,0.75,,
-Asparagus,75100800 ,"Asparagus, raw",3.29,1,,
-Mushrooms,75115000 ,"Mushrooms, raw",1.65,0.5,,
-Fruits,,,,,,
-Apples,63101000,"Apple, raw",3.09,3,,
-Oranges,61119010 ,"Orange, raw",4.29,3,,
-Grapefruit,61101010 ,"Grapefruit, raw",5.98,5,,
-Pomegranates,63145010 ,"Pomegranate, raw",4,1,,
-Bananas,63107010,"Banana, raw",0.48,1,,
-Watermelon,63149010 ,"Watermelon, raw",0.75,1,,
-Honeydew Melon,63127010,"Honeydew melon, raw",1.8,1,,
-Cantaloupe,63109010,"Cantaloupe, raw",1.4,1,,
-Pears,63137010,"Pear, raw",5.39,3,,
-Peaches,63135010,"Peach, raw",3.65,2,,
-Strawberries,63223020,"Strawberries, raw",3.95,1.5,,
-Mango,63129010,"Mango, raw",4.39,1.5,,
-Pineapple,63141010,"Pineapple, raw",1,1,,
-Kiwi,63126500,"Kiwi fruit, raw",4.39,2,,
-Raspberries,63219000,"Raspberries, raw",2.85,0.375,,
-Blueberries,63203010,"Blueberries, raw",3.95,1.5,,
-Cherries,63115010,"Cherries, raw",4,1,,
-"Nuts, Seeds, Healthy Fats",,,,,,
-Almonds,42100100,"Almonds, NFS",4,1,,
-Hazelnuts,42107000,Hazelnuts,6.8,1,,
-Peanuts,42111000,"Peanuts, NFS",2.45,1,,
-Macadamia nuts,42109100,Macadamia nuts,15,1,,
-Cashews,42104000,"Cashews, NFS",11.55,1.875,,
-Walnuts,42116000,"Walnuts, excluding honey roasted",6.05,1,,
-Pumpkin seeds,43101050,"Pumpkin seeds, NFS",1.79,0.3125,,
-Sunflower seeds,43102400,"Sunflower seeds, NFS",2.75,1,,
-Chia seeds,43108010,Chia seeds,17.99,2,,
-Avocados,63105010,"Avocado, raw",1.6,1,,
-Olive Oil,82104000,Olive oil,7.25,1,,
-"Lean Meats, Fish, Eggs",,,,,,
-Chicken breast,24120120 ,"Chicken breast, NS as to cooking method, skin not eaten",4.73,2.5,0.75,
-Chicken thigh,24150220 ,"Chicken thigh, NS as to cooking method, skin not eaten",8.16,4.1,0.75,
-Turkey,24201000 ,"Turkey, NFS",2.99,1,0.75,
-Beef Liver,25110140,"Liver, beef",1.5,1,0.75,
-Pork,22101000,"Pork, chop, NS as to fat eaten",4,1,0.75,
-Beef (grass-fed beef is more nutritious) – regular beef or ground beef,21500100,"Beef, ground",6,1,0.75,
-Tuna,,"Fish, tuna, light, canned in water, without salt, drained solids",7.25,4.15625,,15184
-Salmon,26137110,"Fish, salmon, NFS",8,1,0.75,
-Pink Salmon,26137180,"Fish, salmon, canned",3.6,1,,
-Shrimp,26319110,"Shrimp, NFS",7.5,1,0.75,
-Cod,26109110,"Fish, cod, NFS",5.5,1,0.75,
-Oysters,26315100,"Oysters, raw",10,1,,
-Mussels,26313110,Mussels,10,1,,
-Egg whites,31108110,"Egg, white, cooked, no added fat",2.5,1,,
-Eggs,31103010,"Egg, whole, boiled or poached",1.5,1,,
-Beans And Legumes,,,,,,
-Black Beans,41101990,"Black beans, NFS",26.49,20,2.5,
-White Beans,41101090,"White beans, NFS",31.99,20,2.5,
-Kidney Beans,41105990,"Kidney beans, NFS",28.99,20,2.5,
-Lentils,41304970,"Lentils, NFS",26.99,20,2.5,
-Chickpeas,41301990,"Chickpeas, NFS",28.99,20,2.5,
-Soy Protein Powder,95201300,Nutritional powder mix (EAS Soy Protein Powder),9,1,,
-Split Peas,41303000,"Split peas, from dried, no added fat",23.99,20,2.5,
-Dairy,,,,,,
-Whole Milk,11111000,"Milk, whole",3.19,8,,
-Skim Milk,11113000,"Milk, fat free (skim)",3.19,8,,
-Whole Greek Yogurt,11411400,"Yogurt, Greek, whole milk, plain",4.8,2.1,,
-Nonfat Greek Yogurt,11411420,"Yogurt, Greek, nonfat milk, plain",4.8,2.1,,
-Cottage Cheese,14206010,"Cheese, cottage, lowfat, low sodium",4.3,1.5,,
-Whey Protein Powder Isolate,14058,"Beverages, Whey protein powder isolate",11,1,,14058
-Whey Protein Powder,95201200,Nutritional powder mix (EAS Whey Protein Powder),10,1,,
-American Cheese,14410110,"Cheese, American",2.59,0.75,,
-Herbs & Spices,,,,,,
-Salt,,,,,,
-Pepper,,,,,,
-Cumin,,,,,,
-Turmeric,,,,,,
-Curry Powder,,,,,,
-Cayenne Pepper,,,,,,
-Oregano (fresh & dried),,,,,,
-Basil (fresh & dried),,,,,,
-Rosemary (fresh & dried),,,,,,
-Thyme (fresh & dried),,,,,,
-Dill (fresh & dried),,,,,,
-Chives (fresh & dried),,,,,,
+food,fndds_code,name,price,lbs,multiplier,ndb_code,Vegetarian,Vegan,Gluten-Free,Kosher,Halal,Dairy-Free,Wheat,Nuts,Fish/Shellfish,Eggs,Soy
+Whole Grains,,,,,,,,,,,,,,,,,
+Wheat flour,,"Wheat flour, whole-grain (Includes foods for USDA's Food Distribution Program)",24.49,50,,20080,1,1,0,1,1,1,1,0,0,0,0
+Enriched wheat flour,,"Wheat flour, white, all-purpose, enriched, bleached",23.99,50,,20081,1,1,0,1,1,1,1,0,0,0,0
+Brown rice,56205018,"Rice, brown, cooked, no added fat",21.99,25,3,,1,1,1,1,1,1,0,0,0,0,0
+Quinoa,56204005,"Quinoa, no added fat",55.49,25,3,,1,1,1,1,1,1,0,0,0,0,0
+Barley flour,,Barley flour or meal,33.18,50,,20130,1,1,0,1,1,1,0,0,0,0,0
+Corn flour,,"Corn flour, whole-grain, yellow",22.99,50,,20016,1,1,1,1,1,1,0,0,0,0,0
+White Rice,56205000,"Rice, Cooked, NFS",17.99,40,3,,1,1,1,1,1,1,0,0,0,0,0
+Sugar,91101000,"Sugar, NFS",44.99,50,,,1,1,1,1,1,1,0,0,0,0,0
+Oats,57602100,"Oats, raw",36.99,50,,,1,1,1,1,1,1,0,0,0,0,0
+Vegetables,,,,,,,1,1,1,1,1,1,0,0,0,0,0
+Tomatoes,74101000,"Tomatoes, raw",1.55,2,,,1,1,1,1,1,1,0,0,0,0,0
+Cucumber,75111000 ,"Cucumber, raw",1,1,,,1,1,1,1,1,1,0,0,0,0,0
+Zucchini,75128010 ,"Summer squash, green, raw",2.18,1.45,,,1,1,1,1,1,1,0,0,0,0,0
+Eggplant,75111200 ,"Eggplant, raw",1.5,1,,,1,1,1,1,1,1,0,0,0,0,0
+Red Bell Pepper,75122200 ,"Pepper, sweet, red, raw",2.5,1,,,1,1,1,1,1,1,0,0,0,0,0
+Peas,75120000,"Green peas, raw",1.09,0.75,,,1,1,1,1,1,1,0,0,0,0,0
+Green Bell Pepper,75122100 ,"Pepper, sweet, green, raw",2,1,,,1,1,1,1,1,1,0,0,0,0,0
+Carrots,73101010 ,"Carrots, raw",1.55,2,,,1,1,1,1,1,1,0,0,0,0,0
+Onions,75117020 ,"Onions, raw",3.19,3,,,1,1,1,1,1,1,0,0,0,0,0
+Garlic,75111500 ,"Garlic, raw",5,1,,,1,1,1,1,1,1,0,0,0,0,0
+Spinach,72125100 ,"Spinach, raw",1.65,0.5,,,1,1,1,1,1,1,0,0,0,0,0
+Corn,75109600,"Corn, raw",1.09,0.75,,,1,1,1,1,1,1,0,0,0,0,0
+Kale,72119190 ,"Kale, raw",3.48,1,,,1,1,1,1,1,1,0,0,0,0,0
+Swiss Chard,72104100,"Chard, raw",3,1,,,1,1,1,1,1,1,0,0,0,0,0
+Bok Choy,75104000 ,"Cabbage, Chinese, raw",1.5,1,,,1,1,1,1,1,1,0,0,0,0,0
+Brussels Sprouts,75102750 ,"Brussels sprouts, raw",1.55,0.75,,,1,1,1,1,1,1,0,0,0,0,0
+Lettuce,75113000 ,"Lettuce, raw",1,1,,,1,1,1,1,1,1,0,0,0,0,0
+Cabbage,75103000,"Cabbage, green, raw",0.75,1,,,1,1,1,1,1,1,0,0,0,0,0
+Broccoli,72201100 ,"Broccoli, raw",1.29,0.75,,,1,1,1,1,1,1,0,0,0,0,0
+Potatoes,71000100 ,"Potato, NFS",4.39,8,0.75,,1,1,1,1,1,1,0,0,0,0,0
+Sweet Potato,73401000 ,"Sweet potato, NFS",2.85,3,0.75,,1,1,1,1,1,1,0,0,0,0,0
+Cauliflower,75107000 ,"Cauliflower, raw",1.99,0.75,,,1,1,1,1,1,1,0,0,0,0,0
+Asparagus,75100800 ,"Asparagus, raw",3.29,1,,,1,1,1,1,1,1,0,0,0,0,0
+Mushrooms,75115000 ,"Mushrooms, raw",1.65,0.5,,,1,1,1,1,1,1,0,0,0,0,0
+Fruits,,,,,,,1,1,1,1,1,1,0,0,0,0,0
+Apples,63101000,"Apple, raw",3.09,3,0.9,,1,1,1,1,1,1,0,0,0,0,0
+Oranges,61119010 ,"Orange, raw",4.29,3,0.8,,1,1,1,1,1,1,0,0,0,0,0
+Grapefruit,61101010 ,"Grapefruit, raw",5.98,5,0.8,,1,1,1,1,1,1,0,0,0,0,0
+Pomegranates,63145010 ,"Pomegranate, raw",4,1,0.75,,1,1,1,1,1,1,0,0,0,0,0
+Bananas,63107010,"Banana, raw",0.48,1,0.8,,1,1,1,1,1,1,0,0,0,0,0
+Watermelon,63149010 ,"Watermelon, raw",0.75,1,0.85,,1,1,1,1,1,1,0,0,0,0,0
+Honeydew Melon,63127010,"Honeydew melon, raw",1.8,1,0.9,,1,1,1,1,1,1,0,0,0,0,0
+Cantaloupe,63109010,"Cantaloupe, raw",1.4,1,0.9,,1,1,1,1,1,1,0,0,0,0,0
+Pears,63137010,"Pear, raw",5.39,3,0.9,,1,1,1,1,1,1,0,0,0,0,0
+Peaches,63135010,"Peach, raw",3.65,2,0.9,,1,1,1,1,1,1,0,0,0,0,0
+Strawberries,63223020,"Strawberries, raw",3.95,1.5,,,1,1,1,1,1,1,0,0,0,0,0
+Mango,63129010,"Mango, raw",4.39,1.5,0.9,,1,1,1,1,1,1,0,0,0,0,0
+Pineapple,63141010,"Pineapple, raw",1,1,0.75,,1,1,1,1,1,1,0,0,0,0,0
+Kiwi,63126500,"Kiwi fruit, raw",4.39,2,,,1,1,1,1,1,1,0,0,0,0,0
+Raspberries,63219000,"Raspberries, raw",2.85,0.375,,,1,1,1,1,1,1,0,0,0,0,0
+Blueberries,63203010,"Blueberries, raw",3.95,1.5,,,1,1,1,1,1,1,0,0,0,0,0
+Cherries,63115010,"Cherries, raw",4,1,0.9,,1,1,1,1,1,1,0,0,0,0,0
+"Nuts, Seeds, Healthy Fats",,,,,,,,,,,,,,,,,
+Almonds,42100100,"Almonds, NFS",4,1,,,1,1,1,1,1,1,0,1,0,0,0
+Hazelnuts,42107000,Hazelnuts,6.8,1,,,1,1,1,1,1,1,0,1,0,0,0
+Peanuts,42111000,"Peanuts, NFS",2.45,1,,,1,1,1,1,1,1,0,1,0,0,0
+Macadamia nuts,42109100,Macadamia nuts,15,1,,,1,1,1,1,1,1,0,1,0,0,0
+Cashews,42104000,"Cashews, NFS",11.55,1.875,,,1,1,1,1,1,1,0,1,0,0,0
+Walnuts,42116000,"Walnuts, excluding honey roasted",6.05,1,,,1,1,1,1,1,1,0,1,0,0,0
+Pumpkin seeds,43101050,"Pumpkin seeds, NFS",1.79,0.3125,,,1,1,1,1,1,1,0,0,0,0,0
+Sunflower seeds,43102400,"Sunflower seeds, NFS",2.75,1,,,1,1,1,1,1,1,0,0,0,0,0
+Chia seeds,43108010,Chia seeds,17.99,2,,,1,1,1,1,1,1,0,0,0,0,0
+Avocados,63105010,"Avocado, raw",1.6,1,,,1,1,1,1,1,1,0,0,0,0,0
+Olive Oil,82104000,Olive oil,7.25,1,,,1,1,1,1,1,1,0,0,0,0,0
+"Lean Meats, Fish, Eggs",,,,,,,,,,,,,,,,,
+Chicken breast,24120120 ,"Chicken breast, NS as to cooking method, skin not eaten",4.73,2.5,0.75,,0,0,1,1,1,1,0,0,0,0,0
+Chicken thigh,24150220 ,"Chicken thigh, NS as to cooking method, skin not eaten",8.16,4.1,0.75,,0,0,1,1,1,1,0,0,0,0,0
+Turkey,24201000 ,"Turkey, NFS",2.99,1,0.75,,0,0,1,1,1,1,0,0,0,0,0
+Beef Liver,25110140,"Liver, beef",1.5,1,0.75,,0,0,1,1,1,1,0,0,0,0,0
+Pork,22101000,"Pork, chop, NS as to fat eaten",4,1,0.75,,0,0,1,1,1,1,0,0,0,0,0
+Beef,21500100,"Beef, ground",6,1,0.75,,0,0,1,0,0,1,0,0,0,0,0
+Tuna,,"Fish, tuna, light, canned in water, without salt, drained solids",3.5,1,,15184,0,0,1,1,1,1,0,0,0,0,0
+Salmon,26137110,"Fish, salmon, NFS",8,1,0.75,,0,0,1,1,1,1,0,0,1,0,0
+Pink Salmon,26137180,"Fish, salmon, canned",3.6,1,,,0,0,1,1,1,1,0,0,1,0,0
+Shrimp,26319110,"Shrimp, NFS",7.5,1,0.75,,0,0,1,1,1,1,0,0,1,0,0
+Cod,26109110,"Fish, cod, NFS",5.5,1,0.75,,0,0,1,1,1,1,0,0,1,0,0
+Oysters,26315100,"Oysters, raw",80,4,,,0,0,1,1,1,1,0,0,1,0,0
+Mussels,26313110,Mussels,10,1,,,0,0,1,1,1,1,0,0,1,0,0
+Egg whites,31108110,"Egg, white, cooked, no added fat",2.5,1,,,0,0,1,1,1,1,0,0,1,0,0
+Eggs,31103010,"Egg, whole, boiled or poached",1.5,1,,,1,0,1,1,1,1,0,0,0,1,0
+Beans And Legumes,,,,,,,1,0,1,1,1,1,0,0,0,1,0
+Black Beans,41101990,"Black beans, NFS",26.49,20,2.5,,,,,,,,,,,,
+White Beans,41101090,"White beans, NFS",31.99,20,2.5,,1,1,1,1,1,1,0,0,0,0,0
+Kidney Beans,41105990,"Kidney beans, NFS",28.99,20,2.5,,1,1,1,1,1,1,0,0,0,0,0
+Lentils,41304970,"Lentils, NFS",26.99,20,2.5,,1,1,1,1,1,1,0,0,0,0,0
+Chickpeas,41301990,"Chickpeas, NFS",28.99,20,2.5,,1,1,1,1,1,1,0,0,0,0,0
+Soy Protein Powder,95201300,Nutritional powder mix (EAS Soy Protein Powder),9,1,,,1,1,1,1,1,1,0,0,0,0,0
+Split Peas,41303000,"Split peas, from dried, no added fat",23.99,20,2.5,,1,1,1,1,1,1,0,0,0,0,1
+Dairy,,,,,,,1,1,1,1,1,1,0,0,0,0,0
+Whole Milk,11111000,"Milk, whole",3.19,8,,,1,0,1,1,1,0,0,0,0,0,0
+Skim Milk,11113000,"Milk, fat free (skim)",3.19,8,,,1,0,1,1,1,0,0,0,0,0,0
+Whole Greek Yogurt,11411400,"Yogurt, Greek, whole milk, plain",4.8,2.1,,,1,0,1,1,1,0,0,0,0,0,0
+Nonfat Greek Yogurt,11411420,"Yogurt, Greek, nonfat milk, plain",4.8,2.1,,,1,0,1,1,1,0,0,0,0,0,0
+Cottage Cheese,14206010,"Cheese, cottage, lowfat, low sodium",4.3,1.5,,,1,0,1,1,1,0,0,0,0,0,0
+Whey Protein Powder Isolate,14058,"Beverages, Whey protein powder isolate",11,1,,14058,1,0,1,1,1,0,0,0,0,0,0
+Whey Protein Powder,95201200,Nutritional powder mix (EAS Whey Protein Powder),10,1,,,1,0,1,1,1,0,0,0,0,0,0
+American Cheese,14410110,"Cheese, American",2.59,0.75,,,1,0,1,1,1,0,0,0,0,0,0
+Herbs & Spices,,,,,,,,,,,,,,,,,
+Salt,,,,,,,,,,,,,,,,,
+Pepper,,,,,,,,,,,,,,,,,
+Cumin,,,,,,,,,,,,,,,,,
+Turmeric,,,,,,,,,,,,,,,,,
+Curry Powder,,,,,,,,,,,,,,,,,
+Cayenne Pepper,,,,,,,,,,,,,,,,,
+Oregano (fresh & dried),,,,,,,,,,,,,,,,,
+Basil (fresh & dried),,,,,,,,,,,,,,,,,
+Rosemary (fresh & dried),,,,,,,,,,,,,,,,,
+Thyme (fresh & dried),,,,,,,,,,,,,,,,,
+Dill (fresh & dried),,,,,,,,,,,,,,,,,
+Chives (fresh & dried),,,,,,,,,,,,,,,,,
