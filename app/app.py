@@ -98,6 +98,45 @@ goals_tab = pn.FlexBox(
     height=300,
 )
 
+
+class NutritionFacts(pn.param.Parameterized):
+
+    calories: int = pn.param.Integer()
+    protein: int = pn.param.Integer()
+    fat: int = pn.param.Integer()
+    carbs: int = pn.param.Integer()
+    fiber: int = pn.param.Integer()
+    sugar: int = pn.param.Integer()
+    sodium: int = pn.param.Integer()
+    cholesterol: int = pn.param.Integer()
+    saturated_fat: int = pn.param.Integer()
+
+
+class FoodName(pn.param.Parameterized):
+
+    name: str = pn.param.String()
+
+
+class FoodPrice(pn.param.Parameterized):
+
+    price: float = pn.param.Float()
+
+
+class Food(pn.param.Parameterized):
+
+    name: FoodName = pn.param.ClassSelector(class_=FoodName)
+    nutrition_facts: NutritionFacts = pn.param.ClassSelector(class_=NutritionFacts)
+    price: FoodPrice = pn.param.ClassSelector(class_=FoodPrice)
+
+
+class food_box(pn.FlexBox):
+    def __init__(
+        self,
+        name: str,
+    ):
+        super().__init__()
+
+
 foods_tab = pn.FlexBox("Foods", name="Foods")
 
 contraints_tab = pn.FlexBox("Constraints", name="Constraints")
