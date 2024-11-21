@@ -1,10 +1,11 @@
 import panel as pn
 from panel.viewable import Viewer
+import pandas as pd
 import param
 
 from param import rx
 
-pn.extension()
+pn.extension("tabulator")
 
 
 class NutritionFacts(param.Parameterized):
@@ -124,6 +125,22 @@ class FoodEditBox(Viewer):
         # return pn.Row(self.param.a, self.param.a.rx())
 
 
+food_df = pd.DataFrame(
+    {
+        "food_name": ["beef", "chicken", "pork", "lamb", "fish"],
+        "calories": [250, 200, 300, 400, 150],
+        "protein": [20, 15, 25, 30, 10],
+        "fat": [15, 10, 20, 25, 5],
+    }
+)
+
+tabulator = pn.widgets.Tabulator(food_df, pagination="remote", page_size=5)
+
 beef_box = FoodEditBox(food=beef)
 
-beef_box.servable()
+# pn.Feed(*[beef_box] * 10).servable()
+
+# beef_box.servable()
+
+
+tabulator.servable()

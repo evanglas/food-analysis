@@ -1,18 +1,28 @@
 import panel as pn
+from panel.viewable import Viewer
+import pandas as pd
+import param
+import random
+
+css = """
+.tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-title
+{
+white-space: normal;
+text-overflow: clip;
+}
+"""
 
 pn.extension("tabulator")
 
 title_styles = {"font-size": "20px", "font-weight": "bold"}
-
 sidebar_title = pn.pane.Str("Requirements", styles=title_styles)
-
 age_input = pn.widgets.IntInput(name="Age", value=30)
-
 weight_input = pn.widgets.IntInput(name="Weight", value=70)
-
 height_input = pn.widgets.IntInput(name="Height", value=170)
-
 number_demographic_inputs = pn.Column(age_input, weight_input, height_input)
+
+# food_df = pd.read_csv("panel_food_prices_nutrients.csv", index_col=0)
+# constraints_df = pd.read_csv("panel_nutrient_constraints.csv", index_col=0)
 
 
 class LabeledRBGroup(pn.Column):
@@ -63,7 +73,7 @@ common_diet_checks = pn.GridBox(
     keto_check,
     halal_check,
     kosher_check,
-    ncols=2,
+    ncols=3,
 )
 
 label_common_restrictions = pn.pane.Str("Common Restrictions")
@@ -99,36 +109,6 @@ goals_tab = pn.FlexBox(
 )
 
 
-class NutritionFacts(pn.param.Parameterized):
-
-    calories: int = pn.param.Integer()
-    protein: int = pn.param.Integer()
-    fat: int = pn.param.Integer()
-    carbs: int = pn.param.Integer()
-    fiber: int = pn.param.Integer()
-    sugar: int = pn.param.Integer()
-    sodium: int = pn.param.Integer()
-    cholesterol: int = pn.param.Integer()
-    saturated_fat: int = pn.param.Integer()
-
-
-class FoodName(pn.param.Parameterized):
-
-    name: str = pn.param.String()
-
-
-class FoodPrice(pn.param.Parameterized):
-
-    price: float = pn.param.Float()
-
-
-class Food(pn.param.Parameterized):
-
-    name: FoodName = pn.param.ClassSelector(class_=FoodName)
-    nutrition_facts: NutritionFacts = pn.param.ClassSelector(class_=NutritionFacts)
-    price: FoodPrice = pn.param.ClassSelector(class_=FoodPrice)
-
-
 class food_box(pn.FlexBox):
     def __init__(
         self,
@@ -137,7 +117,18 @@ class food_box(pn.FlexBox):
         super().__init__()
 
 
-foods_tab = pn.FlexBox("Foods", name="Foods")
+# tabulator = pn.widgets.Tabulator(
+#     food_df.T,
+#     pagination="local",
+#     page_size=10,
+#     stylesheets=[":host .tabulator {font-size: 10px;}"],
+# )
+# styler = tabulator.style
+
+foods_tab = pn.FlexBox(
+    "hi",
+    name="Foods",
+)
 
 contraints_tab = pn.FlexBox("Constraints", name="Constraints")
 
@@ -175,6 +166,184 @@ navbar_title = pn.pane.Str("TOD", styles=title_styles)
 
 navbar = pn.FlexBox(navbar_title, flex_direction="row", justify_content="center")
 
-app = pn.FlexBox(navbar, content, flex_direction="column", sizing_mode="stretch_width")
+instructions_markdown = pn.pane.Markdown(
+    """
+    # TOD: The Optimal Diet
+    ---
+
+    ### Use this app to find the unique cost-optimal diet that satisfies all of your core nutritional needs.
+    ___
+
+    <br>
+
+    ## Instructions
+    1. Select the foods you'd be willing to include in your diet.
+    2. Set your nutritional constraints.
+    3. Click **Optimize**!
+
+    <br>
+
+    ## How it works?
+    - The app uses the [PyFoodOpt](https://coin-or.github.io/pulp/) library to solve a linear programming problem.
+    - The problem is to minimize the cost of the diet while satisfying all of the nutritional constraints.
+    - Nutritional data is sourced from the [USDA Food Database](https://usda.gov).
+    - Pricing data has been set manually to reflect real-world wholesale prices. Pricing assumptions may be changed below.
+    - See [about](/about) for more information.
+
+    """
+)
+
+instructions = pn.FlexBox(
+    instructions_markdown,
+    flex_direction="column",
+    justify_content="center",
+    align_items="center",
+    align_content="center",
+    margin=(100, 0, 50, 0),
+    width=500,
+    height=500,
+    styles={
+        "background-color": "lightgrey",
+        "border-radius": "25px",
+        "padding": "25px",
+    },
+)
+
+optimize_button = pn.widgets.Button(name="Optimize", button_type="primary")
+
+results_wrapper = pn.FlexBox(
+    instructions,
+    flex_direction="column",
+    justify_content="center",
+    align_items="center",
+    sizing_mode="stretch_width",
+    flex_wrap="nowrap",
+    # align_content="center",
+)
+
+general_food_config_widgets = pn.FlexBox(common_diet_checks)
+
+food_config_search_box = pn.widgets.TextInput(placeholder="Search Foods")
+
+food_config_category_dropdown = pn.widgets.Select(
+    options=["Fruits", "Vegetables", "Meats", "Dairy", "Grains", "Legumes"],
+)
+
+
+class FoodBox(Viewer):
+
+    food_name = param.String()
+
+    rcolor = lambda: "#%06x" % random.randint(0, 0xFFFFFF)
+
+    def __init__(self, **params):
+        super().__init__(**params)
+
+    def __panel__(self):
+        return pn.FlexBox(
+            pn.pane.Str(self.food_name),
+            flex_direction="column",
+            justify_content="center",
+            align_items="center",
+            align_content="center",
+            margin=10,
+            styles={
+                "width": "100px",
+                "height": "100px",
+                "background-color": f"{FoodBox.rcolor()}",
+                "border-radius": "10px",
+            },
+        )
+
+
+food_names = [
+    "Apple",
+    "Banana",
+    "Orange",
+    "Strawberry",
+    "Blueberry",
+    "Raspberry",
+    "Blackberry",
+    "Pineapple",
+    "Mango",
+    "Papaya",
+    "Kiwi",
+]
+
+food_boxes = [FoodBox(food_name=name) for name in food_names]
+
+food_boxes_wrapper = pn.FlexBox(
+    *food_boxes,
+    flex_direction="row",
+    justify_content="flex-start",
+    sizing_mode="stretch_width",
+    # flex_wrap="nowrap",
+)
+
+
+food_config_foods = pn.FlexBox(
+    food_config_search_box,
+    food_config_category_dropdown,
+    food_boxes_wrapper,
+    flex_direction="column",
+    sizing_mode="stretch_width",
+)
+
+food_config_tab = pn.FlexBox(
+    general_food_config_widgets,
+    food_config_foods,
+    name="Foods",
+)
+
+nutrient_config_tab = pn.FlexBox(
+    "hi",
+    name="Constraints",
+)
+
+config_tabs = pn.Tabs(
+    food_config_tab,
+    nutrient_config_tab,
+    # tabs_location="left",
+    # width=500,
+    # height=500,
+    # margin=(50, 0),
+    # styles={
+    #     "background-color": "lightgrey",
+    #     "border-radius": "25px",
+    #     "padding": "25px",
+    # },
+)
+
+config = pn.FlexBox(
+    config_tabs,
+    flex_direction="column",
+    # align_items="center",
+    # align_content="center",
+    width=800,
+    height=800,
+    margin=(50, 0),
+    styles={
+        "background-color": "lightgrey",
+        "border-radius": "25px",
+        "padding": "25px",
+    },
+)
+
+config_wrapper = pn.FlexBox(
+    config,
+    flex_direction="row",
+    justify_content="center",
+)
+
+app = pn.FlexBox(
+    navbar,
+    results_wrapper,
+    optimize_button,
+    config_wrapper,
+    flex_direction="column",
+    align_items="center",
+    align_content="center",
+    sizing_mode="stretch_width",
+)
 
 app.servable()
