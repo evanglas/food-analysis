@@ -1,5 +1,6 @@
 import panel as pn
 from panel.viewable import Viewer
+from pyfoodopt import *
 import pandas as pd
 import param
 import random
@@ -23,6 +24,13 @@ number_demographic_inputs = pn.Column(age_input, weight_input, height_input)
 
 # food_df = pd.read_csv("panel_food_prices_nutrients.csv", index_col=0)
 # constraints_df = pd.read_csv("panel_nutrient_constraints.csv", index_col=0)
+
+# constraints = Constraints()
+# constraints.add_nutrient_constraints_from_csv("../data/nutrient_constraints.csv")
+pantry = Pantry()
+pantry.build_pantry_from_csv("data/food_nutrient_amounts.csv")
+# fo = FoodOptimizer(pantry=p, constraints=constraints)
+# fo.optimize()
 
 
 class LabeledRBGroup(pn.Column):
@@ -232,45 +240,59 @@ food_config_category_dropdown = pn.widgets.Select(
 
 class FoodBox(Viewer):
 
-    food_name = param.String()
+    food = param.ClassSelector(class_=BaseFood)
 
     rcolor = lambda: "#%06x" % random.randint(0, 0xFFFFFF)
 
+    enabled_stylesheets = [
+        """
+    button { background-color: green !important;}
+    """
+    ]
+
+    disabled_stylesheets = [
+        """
+        button { background-color: red !important;}
+        """
+    ]
+
     def __init__(self, **params):
         super().__init__(**params)
-
-    def __panel__(self):
-        return pn.FlexBox(
-            pn.pane.Str(self.food_name),
+        self.toggle = pn.widgets.Button(
+            name="Enabled",
+            on_click=self._on_click,
+            stylesheets=FoodBox.enabled_stylesheets,
+        )
+        self._layout = pn.FlexBox(
+            pn.pane.Str(self.food.food_name),
+            self.toggle,
             flex_direction="column",
             justify_content="center",
             align_items="center",
             align_content="center",
+            sizing_mode="fixed",
+            width=150,
+            height=100,
             margin=10,
             styles={
-                "width": "100px",
-                "height": "100px",
                 "background-color": f"{FoodBox.rcolor()}",
                 "border-radius": "10px",
             },
         )
 
+    def _on_click(self, event):
+        if self.toggle.name == "Enabled":
+            self.toggle.name = "Disabled"
+            self.toggle.stylesheets = FoodBox.disabled_stylesheets
+        else:
+            self.toggle.name = "Enabled"
+            self.toggle.stylesheets = FoodBox.enabled_stylesheets
 
-food_names = [
-    "Apple",
-    "Banana",
-    "Orange",
-    "Strawberry",
-    "Blueberry",
-    "Raspberry",
-    "Blackberry",
-    "Pineapple",
-    "Mango",
-    "Papaya",
-    "Kiwi",
-]
+    def __panel__(self):
+        return self._layout
 
-food_boxes = [FoodBox(food_name=name) for name in food_names]
+
+food_boxes = [FoodBox(food=food) for fdc_id, food in pantry.foods.items()]
 
 food_boxes_wrapper = pn.FlexBox(
     *food_boxes,
@@ -319,6 +341,7 @@ config = pn.FlexBox(
     flex_direction="column",
     # align_items="center",
     # align_content="center",
+    # sizing_mode="fixed",
     width=800,
     height=800,
     margin=(50, 0),
