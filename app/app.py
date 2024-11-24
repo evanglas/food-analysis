@@ -25,40 +25,17 @@ number_demographic_inputs = pn.Column(age_input, weight_input, height_input)
 # food_df = pd.read_csv("panel_food_prices_nutrients.csv", index_col=0)
 # constraints_df = pd.read_csv("panel_nutrient_constraints.csv", index_col=0)
 
-# constraints = Constraints()
+
+# nb = NutrientBank()
+# nb.build_nutrient_bank_from_json("data/nutrient_constraints.json")
+constraints = Constraints()
+constraints.add_nutrient_constraints_from_json("data/nutrient_constraints_2.json")
 # constraints.add_nutrient_constraints_from_csv("../data/nutrient_constraints.csv")
 pantry = Pantry()
-pantry.build_pantry_from_csv("data/food_nutrient_amounts.csv")
+pantry.build_pantry_from_json("data/food_data.json")
+FOOD_RESTRICTIONS = [r for r in FoodRestrictions.param.objects() if r != "name"]
 # fo = FoodOptimizer(pantry=p, constraints=constraints)
 # fo.optimize()
-
-
-class LabeledRBGroup(pn.Column):
-    def __init__(self, options: list[str], label: str, **kwargs):
-        self.label = pn.pane.Str(label)
-        self.radio_buttons = pn.widgets.RadioButtonGroup(
-            options=options, name=label, **kwargs
-        )
-        super().__init__(self.label, self.radio_buttons)
-
-
-sex_radio_buttons = LabeledRBGroup(options=["Male", "Female"], label="Sex")
-
-activity_radio_buttons = LabeledRBGroup(
-    options=["Sedentary", "Lightly Active", "Moderately Active", "Very Active"],
-    label="Activity",
-)
-
-
-weight_goal_radio_buttons = LabeledRBGroup(
-    options=["Lose", "Maintain", "Gain"], label="Weight Goal"
-)
-
-select_demographic_widgets = pn.Column(
-    sex_radio_buttons, activity_radio_buttons, weight_goal_radio_buttons
-)
-
-demographic_widgets = pn.Column(number_demographic_inputs, select_demographic_widgets)
 
 vegan_check = pn.widgets.Checkbox(name="Vegan")
 
@@ -74,15 +51,21 @@ kosher_check = pn.widgets.Checkbox(name="Kosher")
 
 label_common_diet_checks = pn.pane.Str("Common Diets")
 
-common_diet_checks = pn.GridBox(
-    vegan_check,
-    vegetarian_check,
-    pescatarian_check,
-    keto_check,
-    halal_check,
-    kosher_check,
-    ncols=3,
-)
+FOOD_RESTRICTION_NAME_MAPPINGS = {
+    "vegan": "Vegan",
+    "vegetarian": "Vegetarian",
+    "pescatarian": "Pescatarian",
+    "keto": "Keto",
+    "halal": "Halal",
+    "kosher": "Kosher",
+    "dairy_free": "Dairy-Free",
+    "gluten_free": "Gluten-Free",
+    "soy_free": "Soy-Free",
+    "wheat_free": "Wheat-Free",
+    "egg_free": "Egg-Free",
+    "fish_shellfish_free": "Fish/Shellfish-Free",
+    "nut_free": "Nut-Free",
+}
 
 label_common_restrictions = pn.pane.Str("Common Restrictions")
 
@@ -103,72 +86,6 @@ common_restrictions_checks = pn.GridBox(
     gluten_free_check,
     ncols=2,
 )
-
-
-goals_tab = pn.FlexBox(
-    demographic_widgets,
-    label_common_diet_checks,
-    common_diet_checks,
-    label_common_restrictions,
-    common_restrictions_checks,
-    name="Goals",
-    flex_direction="column",
-    height=300,
-)
-
-
-class food_box(pn.FlexBox):
-    def __init__(
-        self,
-        name: str,
-    ):
-        super().__init__()
-
-
-# tabulator = pn.widgets.Tabulator(
-#     food_df.T,
-#     pagination="local",
-#     page_size=10,
-#     stylesheets=[":host .tabulator {font-size: 10px;}"],
-# )
-# styler = tabulator.style
-
-foods_tab = pn.FlexBox(
-    "hi",
-    name="Foods",
-)
-
-contraints_tab = pn.FlexBox("Constraints", name="Constraints")
-
-sidebar_content = pn.layout.Tabs(goals_tab, foods_tab, contraints_tab)
-
-sidebar = pn.FlexBox(
-    sidebar_title,
-    sidebar_content,
-    flex_direction="column",
-    height=800,
-    styles={"background-color": "grey"},
-    sizing_mode="stretch_width",
-    flex_wrap="nowrap",
-)
-
-results_title = pn.pane.Str("Results", styles=title_styles)
-
-results_diet = pn.FlexBox("Beef", "Potato", "Pepper", flex_direction="column")
-
-results_nutrition = pn.FlexBox("Calories", "Protein", "Fat", flex_direction="column")
-
-results_content = pn.FlexBox(results_diet, results_nutrition)
-
-results = pn.FlexBox(
-    results_title,
-    results_content,
-    flex_direction="column",
-    align_items="center",
-    sizing_mode="stretch_width",
-)
-
-content = pn.GridBox(sidebar, results, ncols=2, sizing_mode="stretch_width")
 
 navbar_title = pn.pane.Str("TOD", styles=title_styles)
 
@@ -210,6 +127,7 @@ instructions = pn.FlexBox(
     margin=(100, 0, 50, 0),
     width=500,
     height=500,
+    sizing_mode="fixed",
     styles={
         "background-color": "lightgrey",
         "border-radius": "25px",
@@ -227,14 +145,6 @@ results_wrapper = pn.FlexBox(
     sizing_mode="stretch_width",
     flex_wrap="nowrap",
     # align_content="center",
-)
-
-general_food_config_widgets = pn.FlexBox(common_diet_checks)
-
-food_config_search_box = pn.widgets.TextInput(placeholder="Search Foods")
-
-food_config_category_dropdown = pn.widgets.Select(
-    options=["Fruits", "Vegetables", "Meats", "Dairy", "Grains", "Legumes"],
 )
 
 
@@ -279,31 +189,103 @@ class FoodBox(Viewer):
                 "border-radius": "10px",
             },
         )
+        self.restrictions = set()
+
+    def handle_checkbox_click(self, event, restriction_name):
+        if event:
+            if not self.food.food_meta.restrictions.__getattribute__(restriction_name):
+                self.disable_toggle()
+                self.restrictions.add(restriction_name)
+        else:
+            if not self.food.food_meta.restrictions.__getattribute__(restriction_name):
+                self.restrictions.remove(restriction_name)
+                if len(self.restrictions) == 0:
+                    self.enable_toggle()
+
+    def enable_toggle(self):
+        self.toggle.name = "Enabled"
+        self.toggle.stylesheets = FoodBox.enabled_stylesheets
+
+    def disable_toggle(self):
+        self.toggle.name = "Disabled"
+        self.toggle.stylesheets = FoodBox.disabled_stylesheets
 
     def _on_click(self, event):
         if self.toggle.name == "Enabled":
-            self.toggle.name = "Disabled"
-            self.toggle.stylesheets = FoodBox.disabled_stylesheets
+            self.enable_toggle()
         else:
-            self.toggle.name = "Enabled"
-            self.toggle.stylesheets = FoodBox.enabled_stylesheets
+            self.disable_toggle()
 
     def __panel__(self):
         return self._layout
 
 
-food_boxes = [FoodBox(food=food) for fdc_id, food in pantry.foods.items()]
+class RestrictionCheckBox(pn.widgets.Checkbox):
+    def __init__(self, on_click, **params):
+        super().__init__(**params)
+        self._on_click = on_click
+        self.rx.watch(self._on_click, "value")
 
-food_boxes_wrapper = pn.FlexBox(
-    *food_boxes,
-    flex_direction="row",
-    justify_content="flex-start",
-    sizing_mode="stretch_width",
-    # flex_wrap="nowrap",
+
+food_config_search_box = pn.widgets.TextInput(placeholder="Search Foods")
+
+food_config_category_dropdown = pn.widgets.Select(
+    options=["Fruits", "Vegetables", "Meats", "Dairy", "Grains", "Legumes"],
 )
 
+food_boxes = [FoodBox(food=food) for fdc_id, food in pantry.foods.items()]
+
+
+class FoodBoxesContainer(Viewer):
+
+    food_boxes = param.List(class_=FoodBox)
+
+    def __init__(self, **params):
+        super().__init__(**params)
+        self.food_boxes = food_boxes
+        self._layout = pn.FlexBox(
+            *self.food_boxes,
+            flex_direction="row",
+            justify_content="flex-start",
+            sizing_mode="stretch_width",
+        )
+
+    def handle_restriction_checkbox_clicked(self, event, restriction_name):
+        for food_box in food_boxes:
+            food_box.handle_checkbox_click(event, restriction_name)
+
+    def get_active_foods_fdc_ids(self, *args):
+        print([fb.food.fdc_id for fb in self.food_boxes if fb.toggle.name == "Enabled"])
+
+    def __panel__(self):
+        return self._layout
+
+
+food_boxes_wrapper = FoodBoxesContainer(food_boxes=food_boxes)
+
+common_diet_checks = pn.GridBox(
+    *[
+        RestrictionCheckBox(
+            name=FOOD_RESTRICTION_NAME_MAPPINGS[rd],
+            on_click=lambda event, rd=rd: food_boxes_wrapper.handle_restriction_checkbox_clicked(
+                event, rd
+            ),
+        )
+        for rd in FOOD_RESTRICTIONS
+    ],
+    ncols=6,
+)
+
+general_food_config_widgets = pn.FlexBox(common_diet_checks)
+
+active_button = pn.widgets.Button(
+    name="Active",
+    button_type="primary",
+    on_click=food_boxes_wrapper.get_active_foods_fdc_ids,
+)
 
 food_config_foods = pn.FlexBox(
+    active_button,
     food_config_search_box,
     food_config_category_dropdown,
     food_boxes_wrapper,
@@ -317,8 +299,52 @@ food_config_tab = pn.FlexBox(
     name="Foods",
 )
 
+
+class NutrientConstraints(Viewer):
+
+    constraints = param.ClassSelector(class_=Constraints)
+
+    def __init__(self, **params):
+        super().__init__(**params)
+        print(self.constraints.nutrient_constraints.items())
+        constraint_widgets = []
+        for (
+            nutrient_nbrs,
+            nbr_constraints,
+        ) in self.constraints.nutrient_constraints.items():
+            if len(nbr_constraints) > 1:
+                constraint_widgets.append(
+                    pn.widgets.RangeSlider(
+                        name=str(nutrient_nbrs),
+                        start=nbr_constraints["lower_bound"].constraint_value,
+                        end=nbr_constraints["upper_bound"].constraint_value,
+                        step=0.1,
+                    )
+                )
+            else:
+                constraint_widgets.append(
+                    pn.widgets.FloatSlider(
+                        name=str(nutrient_nbrs),
+                        value=nbr_constraints[
+                            list(nbr_constraints.keys())[0]
+                        ].constraint_value,
+                    )
+                )
+        self._layout = pn.FlexBox(
+            *constraint_widgets,
+            flex_direction="column",
+            sizing_mode="stretch_width",
+        )
+
+    def __panel__(self):
+        print()
+        return self._layout
+
+
+nutrient_constraints_widgets = NutrientConstraints(constraints=constraints)
+
 nutrient_config_tab = pn.FlexBox(
-    "hi",
+    nutrient_constraints_widgets,
     name="Constraints",
 )
 
@@ -343,8 +369,8 @@ config = pn.FlexBox(
     # align_content="center",
     # sizing_mode="fixed",
     width=800,
-    height=800,
     margin=(50, 0),
+    sizing_mode="stretch_height",
     styles={
         "background-color": "lightgrey",
         "border-radius": "25px",

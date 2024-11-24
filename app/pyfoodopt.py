@@ -4,6 +4,7 @@ import param
 import pulp
 import pint
 from pulp import LpProblem, LpVariable, LpMinimize
+import json
 
 ureg = pint.UnitRegistry()
 DATA_DIR = "../data"
@@ -77,23 +78,28 @@ class FoodRestrictions(param.Parameterized):
     kosher = param.Boolean(default=None, doc="Kosher")
     halal = param.Boolean(default=None, doc="Halal")
     dairy_free = param.Boolean(default=None, doc="Dairy-free")
-    wheat = param.Boolean(default=None, doc="Wheat")
-    nuts = param.Boolean(default=None, doc="Nuts")
-    fish_shellfish = param.Boolean(default=None, doc="Fish/Shellfish")
-    eggs = param.Boolean(default=None, doc="Eggs")
-    soy = param.Boolean(default=None, doc="Soy")
+    wheat_free = param.Boolean(default=None, doc="Wheat")
+    nut_free = param.Boolean(default=None, doc="Nuts")
+    fish_shellfish_free = param.Boolean(default=None, doc="Fish/Shellfish")
+    egg_free = param.Boolean(default=None, doc="Eggs")
+    soy_free = param.Boolean(default=None, doc="Soy")
 
     def __init__(self, **params):
         super().__init__(**params)
 
-    def get_restrictions_from_series(self, series):
-        param_names = [name for name in self.param if name != "name"]
-        for restriction_name, value in series.items():
-            kwargs = {}
-            for param_name in param_names:
-                if param_name in restriction_name.lower():
-                    kwargs[param_name] = value
-            self.param.update(**kwargs)
+
+def get_non_name_params(param_class):
+    return [
+        param_name
+        for param_name in param_class.param.objects().keys()
+        if param_name != "name"
+    ]
+
+
+def get_food_restrictions_from_dict(restrictions_dict):
+    return FoodRestrictions(
+        **{key: restrictions_dict[key] for key in get_non_name_params(FoodRestrictions)}
+    )
 
 
 class FoodMeta(param.Parameterized):
@@ -145,6 +151,7 @@ class Pantry(param.Parameterized):
                 food_name=food_name,
                 fdc_id=row["fdc_id"],
                 food_nutrition=food_nutrition,
+                food_meta=FoodMeta(restrictions=FoodRestrictions()),
             )
             self.add_food(food)
             if set_active:
@@ -174,6 +181,23 @@ class Pantry(param.Parameterized):
 
     def get_active_foods(self):
         return {fdc_id: self.foods[fdc_id] for fdc_id in self.active_foods}
+
+    def build_pantry_from_json(self, json_path: str):
+        with open(json_path, "r") as f:
+            data = json.load(f)
+        for fdc_id in data:
+            food = BaseFood(
+                price=BasePrice(price_per_100_g=data[fdc_id]["price_per_100_g"]),
+                food_name=data[fdc_id]["food_name"],
+                fdc_id=int(fdc_id),
+                food_nutrition=data[fdc_id]["food_nutrition"],
+                food_meta=FoodMeta(
+                    restrictions=get_food_restrictions_from_dict(
+                        data[fdc_id]["restrictions"]
+                    )
+                ),
+            )
+            self.add_food(food)
 
 
 class FoodStore(param.Parameterized):
@@ -213,6 +237,9 @@ class NutrientConstraint(BaseConstraint):
 
     nbr_to_coefficient = param.Dict(default={}, doc="Dict of nutrient to coefficient")
 
+    def get_id(self):
+        return tuple(sorted(self.nbr_to_coefficient.keys()))
+
 
 class FoodConstraint(BaseConstraint):
 
@@ -221,13 +248,55 @@ class FoodConstraint(BaseConstraint):
 
 class BaseNutrient(param.Parameterized):
 
+    RDA_CATEGORIES = ["default"]
+
     nutrient_name = param.String(default=None, doc="Name of nutrient")
     nutrient_id = param.Integer(default=None, doc="ID of nutrient")
+    unit_name = param.String(default=None, doc="Unit of nutrient")
+
+    # Map nutrition category to food constraint?
+    nutrient_rdas = param.Dict(default={}, doc="RDAs for nutrient")
+
+
+class NutrientBank(param.Parameterized):
+
+    nutrients = param.Dict(default={}, doc="Dict of nutrients")
+
+    def __init__(self, **params):
+        super().__init__(**params)
+
+    def add_nutrient(self, nutrient: BaseNutrient):
+        self.nutrients[nutrient.nutrient_id] = nutrient
+
+    def remove_nutrient(self, nutrient_id):
+        del self.nutrients[nutrient_id]
+
+    def get_default_constraints(self):
+        constraints = Constraints()
+        for nutrient in self.nutrients.values():
+            constraints.add_constraints(nutrient.nutrient_rdas["default"])
+        return constraints
+
+    def get_nutrient_by_id(self, nutrient_id):
+        return self.nutrients[nutrient_id]
+
+    def build_nutrient_bank_from_json(self, json_path: str):
+        with open(json_path, "r") as f:
+            data = json.load(f)
+        for nutrient_id in data:
+            nutrient = BaseNutrient(
+                nutrient_name=data[nutrient_id]["nutrient_name"],
+                nutrient_id=int(nutrient_id),
+                unit_name=data[nutrient_id]["unit_name"],
+                nutrient_rdas=data[nutrient_id]["nutrient_rdas"],
+            )
+            self.add_nutrient(nutrient)
 
 
 class Constraints(param.Parameterized):
 
     constraints = param.Dict(default={}, doc="List of constraints")
+    nutrient_constraints = param.Dict(default={}, doc="List of nutrient constraints")
 
     def __init__(self, **params):
         super().__init__(**params)
@@ -236,6 +305,38 @@ class Constraints(param.Parameterized):
     def add_constraint(self, constraint: BaseConstraint):
         self.constraints[self.nconstraints_added] = constraint
         self.nconstraints_added += 1
+
+    def add_constraints(self, constraints):
+        if isinstance(constraints, list):
+            for constraint in constraints:
+                self.add_constraint(constraint)
+        elif isinstance(constraints, BaseConstraint):
+            self.add_constraint(constraints)
+
+    def add_nutrient_constraint(self, nutrient_constraint: NutrientConstraint):
+        nutrient_constraint_id = nutrient_constraint.get_id()
+        if nutrient_constraint_id not in self.nutrient_constraints:
+            self.nutrient_constraints[nutrient_constraint_id] = {}
+        self.nutrient_constraints[nutrient_constraint_id][
+            nutrient_constraint.constraint_type
+        ] = nutrient_constraint
+        self.nconstraints_added += 1
+
+    def add_nutrient_constraints_from_json(self, json_path):
+        with open(json_path, "r") as f:
+            data = json.load(f)
+        for constraint_id, info in data.items():
+            nutrient_nbrs = [int(nbr) for nbr in constraint_id.split(";")]
+            nbr_to_coefficient = {nbr: 1 for nbr in nutrient_nbrs}
+            for constraint_type, constraint_value in info["constraints"].items():
+                if constraint_type not in CONSTRAINT_TYPES:
+                    continue
+                constraint = NutrientConstraint(
+                    constraint_type=constraint_type,
+                    constraint_value=constraint_value,
+                    nbr_to_coefficient=nbr_to_coefficient,
+                )
+                self.add_nutrient_constraint(constraint)
 
     """
     Adds nutrient constraints from a CSV file. Assumes all coefficients are one.
