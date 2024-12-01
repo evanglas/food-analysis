@@ -26,8 +26,8 @@ number_demographic_inputs = pn.Column(age_input, weight_input, height_input)
 # constraints_df = pd.read_csv("panel_nutrient_constraints.csv", index_col=0)
 
 
-# nb = NutrientBank()
-# nb.build_nutrient_bank_from_json("data/nutrient_constraints.json")
+nb = NutrientBank()
+nb.build_nutrient_bank_from_csv("data/nutrients_no_duplicate_nbrs.csv")
 constraints = Constraints()
 constraints.add_nutrient_constraints_from_json("data/nutrient_constraints_2.json")
 # constraints.add_nutrient_constraints_from_csv("../data/nutrient_constraints.csv")
@@ -134,8 +134,6 @@ instructions = pn.FlexBox(
         "padding": "25px",
     },
 )
-
-optimize_button = pn.widgets.Button(name="Optimize", button_type="primary")
 
 results_wrapper = pn.FlexBox(
     instructions,
@@ -255,7 +253,7 @@ class FoodBoxesContainer(Viewer):
             food_box.handle_checkbox_click(event, restriction_name)
 
     def get_active_foods_fdc_ids(self, *args):
-        print([fb.food.fdc_id for fb in self.food_boxes if fb.toggle.name == "Enabled"])
+        return [fb.food.fdc_id for fb in self.food_boxes if fb.toggle.name == "Enabled"]
 
     def __panel__(self):
         return self._layout
@@ -300,44 +298,102 @@ food_config_tab = pn.FlexBox(
 )
 
 
+class NutrientConstraintWidget(Viewer):
+
+    label = param.String()
+    lower_bound = param.Number(default=0)
+    upper_bound = param.Number(default=None)
+    equality = param.Number(default=None)
+
+    def __init__(self, nutrient_nbrs: tuple, **params):
+        super().__init__(**params)
+        if self.lower_bound is not None:
+            self.lower_bound = round(self.lower_bound, 1)
+        if self.upper_bound is not None:
+            self.upper_bound = round(self.upper_bound, 1)
+        if self.equality is not None:
+            self.equality = round(self.equality, 1)
+        self.nutrient_nbrs = nutrient_nbrs
+        self.layout = self._create_layout()
+
+    def _create_layout(self):
+        label_widget = pn.pane.Markdown(f"**{self.label}**", width=200)
+        lower_input = pn.widgets.FloatInput.from_param(
+            self.param.lower_bound, width=100
+        )
+        equality_input = pn.widgets.FloatInput.from_param(
+            self.param.equality, width=100
+        )
+        upper_input = pn.widgets.FloatInput.from_param(
+            self.param.upper_bound, width=100
+        )
+
+        input_row = pn.Row(label_widget, lower_input, equality_input, upper_input)
+        return input_row
+
+    def get_constraints(self):
+        constraints = {self.nutrient_nbrs: {}}
+        if self.lower_bound is not None:
+            constraints[self.nutrient_nbrs]["lower_bound"] = self.lower_bound
+        if self.upper_bound is not None:
+            constraints[self.nutrient_nbrs]["upper_bound"] = self.upper_bound
+        if self.equality is not None:
+            constraints[self.nutrient_nbrs]["equality"] = self.equality
+        return constraints
+
+    def __panel__(self):
+        return self.layout
+
+
 class NutrientConstraints(Viewer):
 
     constraints = param.ClassSelector(class_=Constraints)
 
     def __init__(self, **params):
         super().__init__(**params)
-        print(self.constraints.nutrient_constraints.items())
-        constraint_widgets = []
+        self.constraint_widgets = []
         for (
             nutrient_nbrs,
             nbr_constraints,
         ) in self.constraints.nutrient_constraints.items():
-            if len(nbr_constraints) > 1:
-                constraint_widgets.append(
-                    pn.widgets.RangeSlider(
-                        name=str(nutrient_nbrs),
-                        start=nbr_constraints["lower_bound"].constraint_value,
-                        end=nbr_constraints["upper_bound"].constraint_value,
-                        step=0.1,
-                    )
-                )
+            label = " + ".join(
+                [nb.get_nutrient_by_id(nbr).nutrient_name for nbr in nutrient_nbrs]
+            )
+            label += f" ({nb.get_nutrient_by_id(nutrient_nbrs[0]).unit_name})"
+            lower_bound = nbr_constraints.get("lower_bound")
+            upper_bound = nbr_constraints.get("upper_bound")
+            equality = nbr_constraints.get("equality")
+
+            if lower_bound is not None:
+                lower_bound = lower_bound.constraint_value
             else:
-                constraint_widgets.append(
-                    pn.widgets.FloatSlider(
-                        name=str(nutrient_nbrs),
-                        value=nbr_constraints[
-                            list(nbr_constraints.keys())[0]
-                        ].constraint_value,
-                    )
+                lower_bound = 0
+            if upper_bound is not None:
+                upper_bound = upper_bound.constraint_value
+            if equality is not None:
+                equality = equality.constraint_value
+            self.constraint_widgets.append(
+                NutrientConstraintWidget(
+                    nutrient_nbrs=nutrient_nbrs,
+                    label=label,
+                    lower_bound=lower_bound,
+                    upper_bound=upper_bound,
+                    equality=equality,
                 )
+            )
         self._layout = pn.FlexBox(
-            *constraint_widgets,
+            *self.constraint_widgets,
             flex_direction="column",
             sizing_mode="stretch_width",
         )
 
+    def get_constraints(self):
+        constraints = {}
+        for nutrient_constraint_widget in self.constraint_widgets:
+            constraints.update(nutrient_constraint_widget.get_constraints())
+        return constraints
+
     def __panel__(self):
-        print()
         return self._layout
 
 
@@ -382,6 +438,31 @@ config_wrapper = pn.FlexBox(
     config,
     flex_direction="row",
     justify_content="center",
+)
+
+
+def optimize(event):
+    nutrient_constraints = nutrient_constraints_widgets.get_constraints()
+    nutrient_constraints = Constraints(nutrient_constraints=nutrient_constraints)
+    active_food_fdc_ids = food_boxes_wrapper.get_active_foods_fdc_ids()
+    pantry.set_active_foods(active_food_fdc_ids)
+
+    # print(pantry.get_food_by_fdc_id(168409).food_nutrition)
+
+    fo = FoodOptimizer(pantry=pantry, constraints=nutrient_constraints)
+
+    # Foods don't seem to have foods with ids in the combined constraints (omega-3, omega-6)
+    status = fo.optimize()
+
+    ov = fo.get_optimal_values()
+
+    ov.to_csv('ov.csv')
+
+    # print(fo.get_optimal_values())
+
+
+optimize_button = pn.widgets.Button(
+    name="Optimize", button_type="primary", on_click=optimize
 )
 
 app = pn.FlexBox(

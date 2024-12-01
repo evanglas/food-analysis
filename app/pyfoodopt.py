@@ -168,6 +168,9 @@ class Pantry(param.Parameterized):
         for fdc_id in fdc_ids:
             self.active_foods.add(fdc_id)
 
+    def set_active_foods(self, fdc_ids: list):
+        self.active_foods = set(fdc_ids)
+
     def activate_food(self, fdc_id: int):
         self.active_foods.add(fdc_id)
 
@@ -190,7 +193,7 @@ class Pantry(param.Parameterized):
                 price=BasePrice(price_per_100_g=data[fdc_id]["price_per_100_g"]),
                 food_name=data[fdc_id]["food_name"],
                 fdc_id=int(fdc_id),
-                food_nutrition=data[fdc_id]["food_nutrition"],
+                food_nutrition={int(k): v for k, v in data[fdc_id]["food_nutrition"].items()},
                 food_meta=FoodMeta(
                     restrictions=get_food_restrictions_from_dict(
                         data[fdc_id]["restrictions"]
@@ -254,9 +257,6 @@ class BaseNutrient(param.Parameterized):
     nutrient_id = param.Integer(default=None, doc="ID of nutrient")
     unit_name = param.String(default=None, doc="Unit of nutrient")
 
-    # Map nutrition category to food constraint?
-    nutrient_rdas = param.Dict(default={}, doc="RDAs for nutrient")
-
 
 class NutrientBank(param.Parameterized):
 
@@ -277,8 +277,8 @@ class NutrientBank(param.Parameterized):
             constraints.add_constraints(nutrient.nutrient_rdas["default"])
         return constraints
 
-    def get_nutrient_by_id(self, nutrient_id):
-        return self.nutrients[nutrient_id]
+    def get_nutrient_by_id(self, nutrient_id, default=None):
+        return self.nutrients.get(nutrient_id, default)
 
     def build_nutrient_bank_from_json(self, json_path: str):
         with open(json_path, "r") as f:
@@ -288,15 +288,24 @@ class NutrientBank(param.Parameterized):
                 nutrient_name=data[nutrient_id]["nutrient_name"],
                 nutrient_id=int(nutrient_id),
                 unit_name=data[nutrient_id]["unit_name"],
-                nutrient_rdas=data[nutrient_id]["nutrient_rdas"],
+            )
+            self.add_nutrient(nutrient)
+
+    def build_nutrient_bank_from_csv(self, csv_path: str):
+        df = pd.read_csv(csv_path, index_col=0)
+        for index, row in df.iterrows():
+            nutrient = BaseNutrient(
+                nutrient_name=row["nutrient_name"],
+                nutrient_id=row["nutrient_nbr"],
+                unit_name=row["unit_name"],
             )
             self.add_nutrient(nutrient)
 
 
 class Constraints(param.Parameterized):
 
-    constraints = param.Dict(default={}, doc="List of constraints")
-    nutrient_constraints = param.Dict(default={}, doc="List of nutrient constraints")
+    constraints = param.Dict(default={}, doc="Dict of constraints")
+    nutrient_constraints = param.Dict(default={}, doc="Dict of nutrient constraints")
 
     def __init__(self, **params):
         super().__init__(**params)
@@ -393,6 +402,7 @@ class FoodOptimizer(param.Parameterized):
 
         prob = LpProblem("Minimize_Cost", LpMinimize)
         decision_variables = {}
+        slack_vars = []
 
         # Define decision variables for each food item
         for fdc_id, food in self.pantry.get_active_foods().items():
@@ -401,33 +411,59 @@ class FoodOptimizer(param.Parameterized):
                 f"{fdc_id} {food.food_name}", lowBound=lowBound
             )
 
+        active_fdc_ids = list(self.pantry.get_active_foods().keys())
+        # Add constraints based on nutrient requirements
+        for nutrient_nbrs, constraints in self.constraints.nutrient_constraints.items():
+            # print(nutrient_nbrs)
+            # print(self.pantry.get_active_foods().keys())
+            coefficient_list = []
+
+            for constraint_type, constraint_value in constraints.items():
+
+                for nbr in nutrient_nbrs:
+
+                    for fdc_id in active_fdc_ids:
+
+                        if nbr not in self.pantry.foods[fdc_id].food_nutrition:
+                            # print(f"Nutrient {nbr} not found in food {self.pantry.foods[fdc_id].food_name}", type(nbr))
+                            continue
+
+                        coefficient_list.append(
+                            decision_variables[fdc_id]
+                            * self.pantry.foods[fdc_id].food_nutrition.get(nbr, 0)
+                            / self.pantry.foods[fdc_id].price.price_per_100_g
+                        )
+                    # coefficient_list += [
+                    #     decision_variables[fdc_id]
+                    #     * self.pantry.foods[fdc_id].food_nutrition.get(nbr, 0)
+                    #     / self.pantry.foods[fdc_id].price.price_per_100_g
+                    #     for fdc_id in active_fdc_ids
+                    # ]
+
+                
+                slack_var_up = pulp.LpVariable(f"{nutrient_nbrs} {constraint_type} up", lowBound=0)
+                slack_var_down = pulp.LpVariable(f"{nutrient_nbrs} {constraint_type} down", lowBound=0)
+                slack_vars.append(slack_var_up)
+                slack_vars.append(slack_var_down)
+
+                pulp_sum = pulp.lpSum(coefficient_list) + slack_var_up - slack_var_down
+
+
+                if constraint_type == "equality":
+                    prob += pulp_sum == constraint_value
+                elif constraint_type == "upper_bound":
+                    prob += pulp_sum <= constraint_value
+                elif constraint_type == "lower_bound":
+                    prob += pulp_sum >= constraint_value
+
         # Objective function: minimize the sum of decision variables (or add specific costs if needed)
         prob += sum(list(decision_variables.values()))
+        prob += sum([sv * 10000 for sv in slack_vars])
 
-        # Add constraints based on nutrient requirements
-        for constraint in self.constraints.constraints.values():
-            nutrient_nbrs = constraint.nbr_to_coefficient.keys()
-
-            coefficient_list = []
-            for nbr in nutrient_nbrs:
-                coefficient_list += [
-                    decision_variables[fdc_id]
-                    * self.pantry.foods[fdc_id].food_nutrition.get(nbr, 0)
-                    / self.pantry.foods[fdc_id].price.price_per_100_g
-                    for fdc_id in self.pantry.foods
-                ]
-
-            pulp_sum = pulp.lpSum(coefficient_list)
-
-            if constraint.constraint_type == "equality":
-                prob += pulp_sum == constraint.constraint_value
-            elif constraint.constraint_type == "upper_bound":
-                prob += pulp_sum <= constraint.constraint_value
-            elif constraint.constraint_type == "lower_bound":
-                prob += pulp_sum >= constraint.constraint_value
 
         status = prob.solve()
         self.results.append(prob)
+        return status
 
     def get_optimal_foods(self, prob=None):
         if prob is None:
@@ -445,3 +481,26 @@ class FoodOptimizer(param.Parameterized):
         )
         df["amount"] = df.cost / df.price_per_100_g * 100
         return df
+    
+    def get_shadow_prices(self, prob=None):
+        if prob is None:
+            prob = self.results[-1]
+
+        pis = []
+
+        for name, constraint in prob.constraints.items():
+            pis.append([name, constraint.pi])
+
+        constraint_shadow_prices = pd.DataFrame(pis, columns=['constraint_name', 'pi'])
+        return constraint_shadow_prices
+    
+    def get_optimal_values(self, prob=None):
+        if prob is None:
+            prob = self.results[-1]
+
+        optimal_amounts = []
+        for v in prob.variables():
+            optimal_amounts.append([v.name, v.varValue])
+
+        ov = pd.DataFrame(optimal_amounts, columns=['variable_name', 'variable_value'])
+        return ov
