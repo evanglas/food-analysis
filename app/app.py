@@ -332,13 +332,26 @@ class NutrientConstraintWidget(Viewer):
         return input_row
 
     def get_constraints(self):
+        nbr_to_coefficient = {nbr: 1 for nbr in self.nutrient_nbrs}
         constraints = {self.nutrient_nbrs: {}}
         if self.lower_bound is not None:
-            constraints[self.nutrient_nbrs]["lower_bound"] = self.lower_bound
+            constraints[self.nutrient_nbrs]["lower_bound"] = NutrientConstraint(
+                    constraint_type="lower_bound",
+                    constraint_value=self.lower_bound,
+                    nbr_to_coefficient=nbr_to_coefficient,
+                )
         if self.upper_bound is not None:
-            constraints[self.nutrient_nbrs]["upper_bound"] = self.upper_bound
+            constraints[self.nutrient_nbrs]["upper_bound"] = NutrientConstraint(
+                    constraint_type="upper_bound",
+                    constraint_value=self.upper_bound,
+                    nbr_to_coefficient=nbr_to_coefficient,
+                )
         if self.equality is not None:
-            constraints[self.nutrient_nbrs]["equality"] = self.equality
+            constraints[self.nutrient_nbrs]["equality"] = NutrientConstraint(
+                    constraint_type="equality",
+                    constraint_value=self.equality,
+                    nbr_to_coefficient=nbr_to_coefficient,
+                )
         return constraints
 
     def __panel__(self):
