@@ -268,6 +268,7 @@ class BaseNutrient(param.Parameterized):
     nutrient_name = param.String(default=None, doc="Name of nutrient")
     nutrient_id = param.Integer(default=None, doc="ID of nutrient")
     unit_name = param.String(default=None, doc="Unit of nutrient")
+    nutrient_informal_name = param.String(default=None, doc="Informal name of nutrient")
 
 
 class NutrientBank(param.Parameterized):
@@ -300,6 +301,7 @@ class NutrientBank(param.Parameterized):
                 nutrient_name=data[nutrient_id]["nutrient_name"],
                 nutrient_id=int(nutrient_id),
                 unit_name=data[nutrient_id]["unit_name"],
+                nutrient_informal_name=data['nutrient_informal_name']
             )
             self.add_nutrient(nutrient)
 
@@ -310,6 +312,8 @@ class NutrientBank(param.Parameterized):
                 nutrient_name=row["nutrient_name"],
                 nutrient_id=row["nutrient_nbr"],
                 unit_name=row["unit_name"],
+                nutrient_informal_name=row['nutrient_informal_name']
+
             )
             self.add_nutrient(nutrient)
 
@@ -402,6 +406,7 @@ class FoodOptimizer(param.Parameterized):
 
     pantry = param.ClassSelector(class_=Pantry, doc="Pantry")
     constraints = param.ClassSelector(class_=Constraints, doc="Constraints")
+    nutrient_bank = param.ClassSelector(class_=NutrientBank, default=None, doc="Nutrient bank")
     # objective = param.ClassSelector(class_=BaseObjective, doc="Objective")
 
     def __init__(self, starting_foods: dict = {}, **params):
@@ -422,14 +427,10 @@ class FoodOptimizer(param.Parameterized):
             decision_variables[fdc_id] = LpVariable(
                 f"{fdc_id} {food.food_name}", lowBound=lowBound
             )
-        
-        prob += sum(list(decision_variables.values()))
 
         active_fdc_ids = list(self.pantry.get_active_foods().keys())
         # Add constraints based on nutrient requirements
         for nutrient_nbrs, constraints in self.constraints.nutrient_constraints.items():
-            # print(nutrient_nbrs)
-            # print(self.pantry.get_active_foods().keys())
 
             for constraint_type, nutrient_constraint in constraints.items():
                 coefficient_list = []
@@ -448,33 +449,24 @@ class FoodOptimizer(param.Parameterized):
                             * self.pantry.foods[fdc_id].food_nutrition.get(nbr, 0)
                             / self.pantry.foods[fdc_id].price.price_per_100_g
                         )
-                    # coefficient_list += [
-                    #     decision_variables[fdc_id]
-                    #     * self.pantry.foods[fdc_id].food_nutrition.get(nbr, 0)
-                    #     / self.pantry.foods[fdc_id].price.price_per_100_g
-                    #     for fdc_id in active_fdc_ids
-                    # ]
-
                 
-                # slack_var_up = pulp.LpVariable(f"slack {nutrient_nbrs} {constraint_type} up", lowBound=0)
-                # slack_var_down = pulp.LpVariable(f"slack {nutrient_nbrs} {constraint_type} down", lowBound=0)
-                # slack_vars.append(slack_var_up)
-                # slack_vars.append(slack_var_down)
+                slack_var_up = pulp.LpVariable(f"slack {nutrient_nbrs} {constraint_type} up", lowBound=0)
+                slack_var_down = pulp.LpVariable(f"slack {nutrient_nbrs} {constraint_type} down", lowBound=0)
+                slack_vars.append(slack_var_up)
+                slack_vars.append(slack_var_down)
 
-                pulp_sum = pulp.lpSum(coefficient_list)
-                # + slack_var_up - slack_var_down
+                pulp_sum = pulp.lpSum(coefficient_list) + slack_var_up - slack_var_down
 
-
+                constraint_name = f"{'_'.join([str(nbr) for nbr in nutrient_nbrs])} {constraint_type}"
                 if constraint_type == "equality":
-                    prob += pulp_sum == constraint_value
+                    prob += (pulp_sum == constraint_value, constraint_name)
                 elif constraint_type == "upper_bound":
-                    prob += pulp_sum <= constraint_value
+                    prob += (pulp_sum <= constraint_value, constraint_name)
                 elif constraint_type == "lower_bound":
-                    prob += pulp_sum >= constraint_value
+                    prob += (pulp_sum >= constraint_value, constraint_name)
 
         # Objective function: minimize the sum of decision variables (or add specific costs if needed)
-        # prob += sum([sv * 10000 for sv in slack_vars])
-
+        prob += sum(list(decision_variables.values())) + sum([sv * 10000 for sv in slack_vars])
 
         status = prob.solve()
         self.results.append(prob)
@@ -486,7 +478,7 @@ class FoodOptimizer(param.Parameterized):
 
         optimal_amounts = []
         for v in prob.variables():
-            if v.varValue != 0:
+            if v.varValue != 0 and v.name[:5] != "slack":
                 optimal_amounts.append([v.name, v.varValue])
         df = pd.DataFrame(optimal_amounts, columns=["food", "cost"])
         df[["fdc_id", "food_name"]] = df.food.str.split("_", n=1, expand=True)

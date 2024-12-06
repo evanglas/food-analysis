@@ -4,6 +4,8 @@ from pyfoodopt import *
 import pandas as pd
 import param
 import random
+from config import *
+from bokeh.models.widgets.tables import NumberFormatter
 
 css = """
 .tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-title
@@ -135,7 +137,7 @@ instructions = pn.FlexBox(
     },
 )
 
-results_wrapper = pn.FlexBox(
+instructions_wrapper = pn.FlexBox(
     instructions,
     flex_direction="column",
     justify_content="center",
@@ -241,11 +243,15 @@ class FoodBoxesContainer(Viewer):
     def __init__(self, **params):
         super().__init__(**params)
         self.food_boxes = food_boxes
-        self._layout = pn.FlexBox(
-            *self.food_boxes,
-            flex_direction="row",
-            justify_content="flex-start",
-            sizing_mode="stretch_width",
+        self._layout = pn.Column(
+            pn.FlexBox(
+                *self.food_boxes,
+                flex_direction="row",
+                justify_content="flex-start",
+                sizing_mode="stretch_width",
+            ),
+            height=800,
+            scroll=True,
         )
 
     def handle_restriction_checkbox_clicked(self, event, restriction_name):
@@ -336,22 +342,22 @@ class NutrientConstraintWidget(Viewer):
         constraints = {self.nutrient_nbrs: {}}
         if self.lower_bound is not None:
             constraints[self.nutrient_nbrs]["lower_bound"] = NutrientConstraint(
-                    constraint_type="lower_bound",
-                    constraint_value=self.lower_bound,
-                    nbr_to_coefficient=nbr_to_coefficient,
-                )
+                constraint_type="lower_bound",
+                constraint_value=self.lower_bound,
+                nbr_to_coefficient=nbr_to_coefficient,
+            )
         if self.upper_bound is not None:
             constraints[self.nutrient_nbrs]["upper_bound"] = NutrientConstraint(
-                    constraint_type="upper_bound",
-                    constraint_value=self.upper_bound,
-                    nbr_to_coefficient=nbr_to_coefficient,
-                )
+                constraint_type="upper_bound",
+                constraint_value=self.upper_bound,
+                nbr_to_coefficient=nbr_to_coefficient,
+            )
         if self.equality is not None:
             constraints[self.nutrient_nbrs]["equality"] = NutrientConstraint(
-                    constraint_type="equality",
-                    constraint_value=self.equality,
-                    nbr_to_coefficient=nbr_to_coefficient,
-                )
+                constraint_type="equality",
+                constraint_value=self.equality,
+                nbr_to_coefficient=nbr_to_coefficient,
+            )
         return constraints
 
     def __panel__(self):
@@ -394,10 +400,14 @@ class NutrientConstraints(Viewer):
                     equality=equality,
                 )
             )
-        self._layout = pn.FlexBox(
-            *self.constraint_widgets,
-            flex_direction="column",
-            sizing_mode="stretch_width",
+        self._layout = pn.Column(
+            pn.FlexBox(
+                *self.constraint_widgets,
+                sizing_mode="stretch_width",
+                flex_direction="row",
+            ),
+            height=800,
+            scroll=True,
         )
 
     def get_constraints(self):
@@ -431,27 +441,121 @@ config_tabs = pn.Tabs(
     # },
 )
 
-config = pn.FlexBox(
-    config_tabs,
-    flex_direction="column",
-    # align_items="center",
-    # align_content="center",
-    # sizing_mode="fixed",
-    width=800,
-    margin=(50, 0),
-    sizing_mode="stretch_height",
-    styles={
-        "background-color": "lightgrey",
-        "border-radius": "25px",
-        "padding": "25px",
-    },
-)
+class AggregateResultInfo(Viewer):
 
-config_wrapper = pn.FlexBox(
-    config,
-    flex_direction="row",
-    justify_content="center",
-)
+    cost = param.Number()
+    n_foods = param.Integer()
+
+    def __init__(self, **params):
+        super().__init__(**params)
+        self._layout = pn.Row(
+            pn.FlexBox(
+                self.get_cost_indicator(),
+                self.get_n_foods_indicator(),
+                flex_direction="row",
+                justify_content="space-evenly"
+            )
+        )
+    
+    def get_cost_indicator(self):
+        return pn.indicators.Number(name='Total Cost', value=self.cost, format="${value:,.2f}", default_color='green')
+
+    def get_n_foods_indicator(self):
+        return pn.indicators.Number(name='# of Foods', value=self.n_foods)
+
+    def __panel__(self):
+        return self._layout
+
+class AggregateResultNutritionFacts(Viewer):
+
+    food_optimizer = param.ClassSelector(class_=FoodOptimizer)
+    optimal_foods = param.DataFrame(default=None)
+
+    tabulator_formatters = {
+        "Amount": NumberFormatter(format="0.00"),
+    }
+
+    def __init__(self, **params):
+        super().__init__(**params)
+        if self.optimal_foods is None:
+            self.optimal_foods = self.food_optimizer.get_optimal_foods()
+        self.tabulator = self.get_aggregate_nutrition_facts_tabulator()
+        self._layout = pn.Column(
+            self.tabulator
+        )
+
+    def get_aggregate_nutrition_facts_tabulator(self):
+        df = self.get_aggregate_nutrition_facts_df()
+        tabulator = pn.widgets.Tabulator(df, show_index=False, formatters=AggregateResultNutritionFacts.tabulator_formatters)
+        return tabulator
+
+    def get_aggregate_nutrition_facts_df(self):
+        nutrition_dict = {}
+        for i, row in self.optimal_foods.iterrows():
+            food = self.food_optimizer.pantry.get_food_by_fdc_id(row['fdc_id'])
+            nutrition_dict[str(row['fdc_id'])] = {nutrient_nbr: amount * row['amount'] / 100 for nutrient_nbr, amount in food.food_nutrition.items()}
+        nutrition_df = pd.DataFrame(nutrition_dict)
+        nutrient_units = [nb.get_nutrient_by_id(nbr).unit_name for nbr in nutrition_df.index]
+        nutrient_names = [nb.get_nutrient_by_id(nbr).nutrient_name for nbr in nutrition_df.index]
+        # nutrition_df.columns = pd.MultiIndex.from_tuples(
+        #     list(zip(nutrition_df.columns.astype(str), nutrient_names)), 
+        #     names=["nutrient_nbr", "nutrient_name"]
+        # )
+        nutrition_df.index = nutrient_names
+        nutrition_df = nutrition_df.T.sum().reset_index().rename(columns={'index': 'Nutrient', 0: 'Amount'})
+        nutrition_df['Units'] = nutrient_units
+        return nutrition_df
+
+    def __panel__(self):
+        return self._layout
+
+
+class Results(Viewer):
+
+    food_optimizer = param.ClassSelector(class_=FoodOptimizer, doc="The FoodOptimizer")
+
+    def __init__(self, **params):
+        super().__init__(**params)
+        self.optimal_foods = self.food_optimizer.get_optimal_foods()
+        self.optimal_foods['fdc_id'] = self.optimal_foods['fdc_id'].astype(int)
+        self.optimal_foods_tabulator = pn.widgets.Tabulator(
+            self.optimal_foods
+        )
+        self.aggregate_result_info = AggregateResultInfo(
+            cost=self.optimal_foods.cost.sum(),
+            n_foods=self.optimal_foods.shape[0]
+        )
+
+        self.aggregate_result_nutrition_facts = AggregateResultNutritionFacts(food_optimizer=self.food_optimizer, optimal_foods=self.optimal_foods)
+        # print(self.get_aggregate_nutrition_facts().sum())
+        self._layout = pn.Column(self.optimal_foods_tabulator, self.aggregate_result_info, self.aggregate_result_nutrition_facts)
+
+
+    def get_aggregate_results_info(self):
+        total_cost = self.optimal_foods.cost.sum()
+        n_foods = self.optimal_foods.shape[0]
+        nutrition_facts = self.get_aggregate_nutrition_facts(self.optimal_foods)
+
+    def __panel__(self):
+        return self._layout
+
+
+class ResultsTabs(Viewer):
+
+    # results = param.List(item_type=Results, doc="List of Results")
+
+    def __init__(self, **params):
+        super().__init__(**params)
+        self.results_tabs = pn.Tabs()
+
+    def add_result(self, result: Results):
+        self.results_tabs.append(result)
+
+    def __panel__(self):
+        return self.results_tabs
+
+
+results_tabs = ResultsTabs()
 
 
 def optimize(event):
@@ -469,20 +573,71 @@ def optimize(event):
 
     ov = fo.get_optimal_values()
 
-    ov.to_csv('ov.csv')
+    results = Results(food_optimizer=fo)
 
-    # print(fo.get_optimal_values())
+    results_tabs.add_result(results)
 
 
 optimize_button = pn.widgets.Button(
-    name="Optimize", button_type="primary", on_click=optimize
+    name="Optimize", button_type="primary", on_click=optimize, margin=(0, 0, 20, 0)
+)
+
+config = pn.Column(
+    instructions_markdown,
+    optimize_button,
+    config_tabs,
+    # flex_direction="column",
+    # align_items="center",
+    # align_content="center",
+    # sizing_mode="fixed",
+    width=CONFIG_RESULTS_WIDTH,
+    margin=(50, 50),
+    # sizing_mode="stretch_height",
+    styles={
+        "background-color": "lightgrey",
+        "border-radius": "25px",
+        "padding": "25px",
+    },
+)
+
+# config_wrapper = pn.Column(
+#     config,
+#     flex_direction="row",
+#     margin=(0,50),
+#     width=750,
+# )
+
+config_wrapper = config
+
+results_wrapper = pn.FlexBox(
+    results_tabs,
+    flex_direction="column",
+    align_items="center",
+    align_content="center",
+    # sizing_mode="fixed",
+    width=CONFIG_RESULTS_WIDTH,
+    margin=(50, 0),
+    # sizing_mode="stretch_height",
+    styles={
+        "background-color": "lightgrey",
+        "border-radius": "25px",
+        "padding": "25px",
+    },
+)
+
+app_content = pn.FlexBox(
+    # instructions_wrapper,
+    config_wrapper,
+    results_wrapper,
+    flex_direction="row",
+    # flex_wrap="nowrap",
+    justify_content="left"
 )
 
 app = pn.FlexBox(
     navbar,
-    results_wrapper,
+    app_content,
     optimize_button,
-    config_wrapper,
     flex_direction="column",
     align_items="center",
     align_content="center",
