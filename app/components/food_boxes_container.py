@@ -1,7 +1,7 @@
 import param
 import panel as pn
 from panel.viewable import Viewer
-from food_box import FoodBox
+from components.food_box import FoodBox
 
 
 class FoodBoxesContainer(Viewer):

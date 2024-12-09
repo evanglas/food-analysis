@@ -12,6 +12,7 @@ from results import *
 from instructions import instructions
 from config_tabs import ConfigTabs
 from navbar import navbar
+from config import *
 
 pn.extension("tabulator")
 
@@ -21,24 +22,6 @@ constraints = Constraints()
 constraints.add_nutrient_constraints_from_json("data/nutrient_constraints_2.json")
 pantry = Pantry()
 pantry.build_pantry_from_json("data/food_data.json")
-FOOD_RESTRICTIONS = [r for r in FoodRestrictions.param.objects() if r != "name"]
-
-
-FOOD_RESTRICTION_NAME_MAPPINGS = {
-    "vegan": "Vegan",
-    "vegetarian": "Vegetarian",
-    "pescatarian": "Pescatarian",
-    "keto": "Keto",
-    "halal": "Halal",
-    "kosher": "Kosher",
-    "dairy_free": "Dairy-Free",
-    "gluten_free": "Gluten-Free",
-    "soy_free": "Soy-Free",
-    "wheat_free": "Wheat-Free",
-    "egg_free": "Egg-Free",
-    "fish_shellfish_free": "Fish/Shellfish-Free",
-    "nut_free": "Nut-Free",
-}
 
 instructions_wrapper = pn.FlexBox(
     instructions,
@@ -98,7 +81,9 @@ food_config_tab = pn.FlexBox(
 )
 
 
-nutrient_constraints_widgets = NutrientConstraints(constraints=constraints)
+nutrient_constraints_widgets = NutrientConstraints(
+    constraints=constraints, nutrient_bank=nb
+)
 
 nutrient_config_tab = pn.FlexBox(
     nutrient_constraints_widgets,
@@ -124,7 +109,7 @@ def optimize(event):
 
     ov = fo.get_optimal_values()
 
-    results = Results(food_optimizer=fo)
+    results = Results(food_optimizer=fo, nutrient_bank=nb)
 
     results_tabs.add_result(results)
 

@@ -100,6 +100,7 @@ class AggregateResultNutritionFacts(Viewer):
 class Results(Viewer):
 
     food_optimizer = param.ClassSelector(class_=FoodOptimizer, doc="The FoodOptimizer")
+    nutrient_bank = param.ClassSelector(class_=NutrientBank)
 
     def __init__(self, **params):
         super().__init__(**params)
@@ -111,7 +112,9 @@ class Results(Viewer):
         )
 
         self.aggregate_result_nutrition_facts = AggregateResultNutritionFacts(
-            food_optimizer=self.food_optimizer, optimal_foods=self.optimal_foods
+            food_optimizer=self.food_optimizer,
+            optimal_foods=self.optimal_foods,
+            nutrient_bank=self.nutrient_bank,
         )
         # print(self.get_aggregate_nutrition_facts().sum())
         self._layout = pn.Column(

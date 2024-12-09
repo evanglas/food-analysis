@@ -1,7 +1,7 @@
 from panel.viewable import Viewer
 from pyfoodopt import Constraints, NutrientBank
 import param
-from nutrient_constraint_widget import NutrientConstraintWidget
+from components.nutrient_constraint_widget import NutrientConstraintWidget
 import panel as pn
 
 
