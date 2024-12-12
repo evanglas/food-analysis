@@ -11,7 +11,8 @@ class OptimizeButton(Viewer):
             name="Optimize",
             button_type="primary",
             on_click=self._on_click,
-            margin=(0, 0, 20, 0),
+            margin=(15, 0, 15, 0),
+            width=100,
         )
 
     def __panel__(self):

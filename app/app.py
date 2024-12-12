@@ -30,7 +30,6 @@ instructions_wrapper = pn.FlexBox(
     align_items="center",
     sizing_mode="stretch_width",
     flex_wrap="nowrap",
-    # align_content="center",
 )
 
 
@@ -43,16 +42,20 @@ nutrient_config_tab = pn.FlexBox(
     name="Constraints",
 )
 
-results_tabs = ResultsTabs()
+food_config = FoodConfig(
+    food_restriction_name_mappings=FOOD_RESTRICTION_NAME_MAPPINGS, pantry=pantry
+)
+
+config_tabs = pn.Tabs(("Foods", food_config), nutrient_config_tab)
+
+results_container = ResultsContainer()
 
 
 def optimize(event):
     nutrient_constraints = nutrient_constraints_widgets.get_constraints()
     nutrient_constraints = Constraints(nutrient_constraints=nutrient_constraints)
-    active_food_fdc_ids = food_boxes_wrapper.get_active_foods_fdc_ids()
+    active_food_fdc_ids = food_config.get_active_foods_fdc_ids()
     pantry.set_active_foods(active_food_fdc_ids)
-
-    # print(pantry.get_food_by_fdc_id(168409).food_nutrition)
 
     fo = FoodOptimizer(pantry=pantry, constraints=nutrient_constraints)
 
@@ -63,67 +66,31 @@ def optimize(event):
 
     results = Results(food_optimizer=fo, nutrient_bank=nb)
 
-    results_tabs.add_result(results)
+    results_container.add_result(results)
 
 
 optimize_button = OptimizeButton(on_click=optimize)
-
-food_config_tab = FoodConfig(
-    food_restriction_name_mappings=FOOD_RESTRICTION_NAME_MAPPINGS, pantry=pantry
-)
-
-config_tabs = pn.Tabs(("Foods", food_config_tab), nutrient_config_tab)
 
 config = pn.Column(
     instructions,
     optimize_button,
     config_tabs,
-    # flex_direction="column",
-    # align_items="center",
-    # align_content="center",
-    # sizing_mode="fixed",
     width=CONFIG_RESULTS_WIDTH,
-    margin=(50, 50),
-    # sizing_mode="stretch_height",
+    margin=(25, 0),
     styles={
         "background-color": "lightgrey",
         "border-radius": "25px",
         "padding": "25px",
     },
 )
-
-# config_wrapper = pn.Column(
-#     config,
-#     flex_direction="row",
-#     margin=(0,50),
-#     width=750,
-# )
 
 config_wrapper = config
 
-results_wrapper = pn.FlexBox(
-    results_tabs,
-    flex_direction="column",
-    align_items="center",
-    align_content="center",
-    # sizing_mode="fixed",
-    width=CONFIG_RESULTS_WIDTH,
-    margin=(50, 0),
-    # sizing_mode="stretch_height",
-    styles={
-        "background-color": "lightgrey",
-        "border-radius": "25px",
-        "padding": "25px",
-    },
-)
-
 app_content = pn.FlexBox(
-    # instructions_wrapper,
     config_wrapper,
-    results_wrapper,
+    results_container,
     flex_direction="row",
-    # flex_wrap="nowrap",
-    justify_content="left",
+    justify_content="space-evenly",
 )
 
 app = pn.FlexBox(

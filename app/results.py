@@ -4,6 +4,7 @@ from panel.viewable import Viewer
 from pyfoodopt import FoodOptimizer, NutrientBank
 import pandas as pd
 from bokeh.models.widgets.tables import NumberFormatter
+from config import *
 
 
 class AggregateResultInfo(Viewer):
@@ -147,3 +148,31 @@ class ResultsTabs(Viewer):
 
     def __panel__(self):
         return self.results_tabs
+
+
+class ResultsContainer(Viewer):
+
+    results_tabs = param.ClassSelector(class_=ResultsTabs, default=ResultsTabs())
+
+    def __init__(self, **params):
+        super().__init__(**params)
+
+    def _layout(self):
+        container_header = pn.pane.Markdown("# Results", sizing_mode="stretch_width")
+        return pn.Column(
+            container_header,
+            self.results_tabs,
+            width=CONFIG_RESULTS_WIDTH,
+            margin=(25, 0),
+            styles={
+                "background-color": "lightgrey",
+                "border-radius": "25px",
+                "padding": "25px",
+            },
+        )
+
+    def add_result(self, results: Results):
+        self.results_tabs.add_result(results)
+
+    def __panel__(self):
+        return self._layout

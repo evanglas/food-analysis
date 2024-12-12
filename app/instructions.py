@@ -38,7 +38,7 @@ instructions_about_markdown = pn.pane.Markdown(
 instructions = pn.Column(
     instructions_title_markdown,
     pn.Accordion(("Instructions", instructions_instructions_markdown)),
-    pn.Accordion(("How it Works", instructions_about_markdown)),
+    pn.Accordion(("How it Works", instructions_about_markdown), margin=(15, 0, 0, 0)),
 )
 
 # instructions = pn.FlexBox(

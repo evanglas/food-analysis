@@ -36,47 +36,6 @@ class RestrictionChecks(Viewer):
         return self._layout
 
 
-class FoodConfig(Viewer):
-
-    food_restriction_name_mappings = param.Dict(default={})
-    pantry = param.ClassSelector(class_=Pantry)
-
-    def __init__(self, **params):
-        super().__init__(**params)
-
-    def _layout(self):
-
-        food_boxes_container = FoodBoxesContainer(
-            food_boxes_list=FoodBoxesList(
-                food_boxes=[
-                    FoodBox(food=food) for food in list(self.pantry.foods.values())
-                ]
-            )
-        )
-
-        restriction_checks = RestrictionChecks(
-            on_click=food_boxes_container.handle_restriction_checkbox_clicked,
-            food_restriction_name_mappings=self.food_restriction_name_mappings,
-        )
-
-        food_config_foods = pn.FlexBox(
-            food_boxes_container,
-            flex_direction="column",
-            sizing_mode="stretch_width",
-        )
-
-        food_config_tab = pn.FlexBox(
-            restriction_checks,
-            food_config_foods,
-            name="Foods",
-        )
-
-        return food_config_tab
-
-    def __panel__(self):
-        return self._layout
-
-
 class FoodBoxesList(param.Parameterized):
 
     food_boxes = param.List(item_type=FoodBox)
@@ -146,7 +105,54 @@ class FoodBoxesContainer(Viewer):
             food_box.handle_checkbox_click(event, restriction_name)
 
     def get_active_foods_fdc_ids(self, *args):
-        return [fb.food.fdc_id for fb in self.food_boxes if fb.toggle.name == "Enabled"]
+        return [
+            fb.food.fdc_id
+            for fb in self.food_boxes_list.food_boxes
+            if fb.toggle.name == "Enabled"
+        ]
+
+    def __panel__(self):
+        return self._layout
+
+
+class FoodConfig(Viewer):
+
+    food_restriction_name_mappings = param.Dict(default={})
+    pantry = param.ClassSelector(class_=Pantry)
+
+    def __init__(self, **params):
+        super().__init__(**params)
+        self.food_boxes_container = FoodBoxesContainer(
+            food_boxes_list=FoodBoxesList(
+                food_boxes=[
+                    FoodBox(food=food) for food in list(self.pantry.foods.values())
+                ]
+            )
+        )
+
+        self.restriction_checks = RestrictionChecks(
+            on_click=self.food_boxes_container.handle_restriction_checkbox_clicked,
+            food_restriction_name_mappings=self.food_restriction_name_mappings,
+        )
+
+    def _layout(self):
+
+        food_config_foods = pn.FlexBox(
+            self.food_boxes_container,
+            flex_direction="column",
+            sizing_mode="stretch_width",
+        )
+
+        food_config_tab = pn.FlexBox(
+            self.restriction_checks,
+            food_config_foods,
+            name="Foods",
+        )
+
+        return food_config_tab
+
+    def get_active_foods_fdc_ids(self, *args):
+        return self.food_boxes_container.get_active_foods_fdc_ids()
 
     def __panel__(self):
         return self._layout
