@@ -8,8 +8,8 @@ FOOD_RESTRICTIONS = [r for r in FoodRestrictions.param.objects() if r != "name"]
 FOOD_RESTRICTION_NAME_MAPPINGS = {
     "vegan": "Vegan",
     "vegetarian": "Vegetarian",
-    "pescatarian": "Pescatarian",
-    "keto": "Keto",
+    # "pescatarian": "Pescatarian",
+    # "keto": "Keto",
     "halal": "Halal",
     "kosher": "Kosher",
     "dairy_free": "Dairy-Free",

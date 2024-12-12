@@ -7,3 +7,6 @@ class ConfigTabs(pn.Tabs):
         self.food_config_tab = food_config_tab
         self.nutrient_config_tab = nutrient_config_tab
         super().__init__(self.food_config_tab, self.nutrient_config_tab)
+
+    def __panel__(self):
+        super().__panel__()

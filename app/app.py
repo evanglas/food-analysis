@@ -2,7 +2,7 @@ import panel as pn
 from pyfoodopt import *
 from config import *
 from components.food_box import FoodBox
-from components.food_boxes_container import FoodBoxesContainer
+from components.food_boxes_container import *
 from components.nutrient_constraint_widget import NutrientConstraintWidget
 from components.nutrient_constraints import NutrientConstraints
 from components.optimize_button import OptimizeButton
@@ -34,53 +34,6 @@ instructions_wrapper = pn.FlexBox(
 )
 
 
-food_config_search_box = pn.widgets.TextInput(placeholder="Search Foods")
-
-food_config_category_dropdown = pn.widgets.Select(
-    options=["Fruits", "Vegetables", "Meats", "Dairy", "Grains", "Legumes"],
-)
-
-food_boxes = [FoodBox(food=food) for fdc_id, food in pantry.foods.items()]
-
-
-food_boxes_wrapper = FoodBoxesContainer(food_boxes=food_boxes)
-
-common_diet_checks = pn.GridBox(
-    *[
-        RestrictionCheckBox(
-            name=FOOD_RESTRICTION_NAME_MAPPINGS[rd],
-            on_click=lambda event, rd=rd: food_boxes_wrapper.handle_restriction_checkbox_clicked(
-                event, rd
-            ),
-        )
-        for rd in FOOD_RESTRICTIONS
-    ],
-    ncols=6,
-)
-
-general_food_config_widgets = pn.FlexBox(common_diet_checks)
-
-active_button = pn.widgets.Button(
-    name="Active",
-    button_type="primary",
-    on_click=food_boxes_wrapper.get_active_foods_fdc_ids,
-)
-
-food_config_foods = pn.FlexBox(
-    food_config_search_box,
-    food_config_category_dropdown,
-    food_boxes_wrapper,
-    flex_direction="column",
-    sizing_mode="stretch_width",
-)
-
-food_config_tab = pn.FlexBox(
-    general_food_config_widgets,
-    food_config_foods,
-    name="Foods",
-)
-
-
 nutrient_constraints_widgets = NutrientConstraints(
     constraints=constraints, nutrient_bank=nb
 )
@@ -89,7 +42,6 @@ nutrient_config_tab = pn.FlexBox(
     nutrient_constraints_widgets,
     name="Constraints",
 )
-
 
 results_tabs = ResultsTabs()
 
@@ -116,7 +68,11 @@ def optimize(event):
 
 optimize_button = OptimizeButton(on_click=optimize)
 
-config_tabs = ConfigTabs(food_config_tab, nutrient_config_tab)
+food_config_tab = FoodConfig(
+    food_restriction_name_mappings=FOOD_RESTRICTION_NAME_MAPPINGS, pantry=pantry
+)
+
+config_tabs = pn.Tabs(("Foods", food_config_tab), nutrient_config_tab)
 
 config = pn.Column(
     instructions,
