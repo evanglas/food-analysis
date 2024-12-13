@@ -5,7 +5,7 @@ instructions_title_markdown = pn.pane.Markdown(
     # TOD: The Optimal Diet
     ---
 
-    ### Use this app to find the unique cost-optimal diet that satisfies all of your core nutritional needs.
+    ### Use this app to find the cost-optimal diet that satisfies all of your nutritional needs.
     ___
     """
 )

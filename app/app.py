@@ -15,6 +15,7 @@ from navbar import navbar
 from config import *
 
 pn.extension("tabulator")
+# pn.extension(design="bootstrap")
 
 nb = NutrientBank()
 nb.build_nutrient_bank_from_csv("data/nutrients_no_duplicate_nbrs.csv")
@@ -78,9 +79,10 @@ config = pn.Column(
     width=CONFIG_RESULTS_WIDTH,
     margin=(25, 0),
     styles={
-        "background-color": "lightgrey",
+        # "background-color": "lightgrey",
+        "border": "1px solid black",
         "border-radius": "25px",
-        "padding": "25px",
+        "padding": "10px 25px",
     },
 )
 

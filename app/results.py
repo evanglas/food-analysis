@@ -6,6 +6,21 @@ import pandas as pd
 from bokeh.models.widgets.tables import NumberFormatter
 from config import *
 
+FOOD_TABLE_MAPPINGS = {
+    "food_name": "Food",
+    "amount": "Weight (g)",
+    "cost": "Total Cost ($)",
+    "price_per_100_g": "Price per 100g ($)",
+}
+
+FOOD_TABLE_COLUMNS = list(FOOD_TABLE_MAPPINGS.keys())
+
+TABULATOR_STYLESHEET = """
+    :host {
+        margin: 0;
+    }
+"""
+
 
 class AggregateResultInfo(Viewer):
 
@@ -61,6 +76,7 @@ class AggregateResultNutritionFacts(Viewer):
             df,
             show_index=False,
             formatters=AggregateResultNutritionFacts.tabulator_formatters,
+            stylesheets=[TABULATOR_STYLESHEET],
         )
         return tabulator
 
@@ -106,8 +122,17 @@ class Results(Viewer):
     def __init__(self, **params):
         super().__init__(**params)
         self.optimal_foods = self.food_optimizer.get_optimal_foods()
+        self.optimal_foods["food_name"] = self.optimal_foods["food_name"].str.replace(
+            "_", " "
+        )
         self.optimal_foods["fdc_id"] = self.optimal_foods["fdc_id"].astype(int)
-        self.optimal_foods_tabulator = pn.widgets.Tabulator(self.optimal_foods)
+        self.optimal_foods_tabulator = pn.widgets.Tabulator(
+            self.optimal_foods[FOOD_TABLE_COLUMNS],
+            titles=FOOD_TABLE_MAPPINGS,
+            show_index=False,
+            layout="fit_data_table",
+            stylesheets=[TABULATOR_STYLESHEET],
+        )
         self.aggregate_result_info = AggregateResultInfo(
             cost=self.optimal_foods.cost.sum(), n_foods=self.optimal_foods.shape[0]
         )
@@ -118,10 +143,14 @@ class Results(Viewer):
             nutrient_bank=self.nutrient_bank,
         )
         # print(self.get_aggregate_nutrition_facts().sum())
-        self._layout = pn.Column(
-            self.optimal_foods_tabulator,
+
+    def _layout(self):
+        return pn.Column(
             self.aggregate_result_info,
-            self.aggregate_result_nutrition_facts,
+            pn.pane.Markdown("## Foods"),
+            pn.Accordion(("Food Info", self.optimal_foods_tabulator)),
+            pn.pane.Markdown("## Nutrition Facts"),
+            pn.Accordion(("Nutrition Facts", self.aggregate_result_nutrition_facts)),
         )
 
     def get_aggregate_results_info(self):
@@ -165,7 +194,7 @@ class ResultsContainer(Viewer):
             width=CONFIG_RESULTS_WIDTH,
             margin=(25, 0),
             styles={
-                "background-color": "lightgrey",
+                "border": "1px solid black",
                 "border-radius": "25px",
                 "padding": "25px",
             },
