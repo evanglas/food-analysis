@@ -3,6 +3,9 @@ import panel as pn
 from panel.viewable import Viewer
 from components.food_box import FoodBox
 from pyfoodopt import BaseFood, Pantry
+import pandas as pd
+from bokeh.models.widgets.tables import NumberFormatter, BooleanFormatter
+from config import *
 
 
 class RestrictionCheckBox(pn.widgets.Checkbox):
@@ -54,6 +57,65 @@ class FoodBoxesList(param.Parameterized):
             self.visible_food_boxes = [
                 fb for fb in self.food_boxes if search_term in fb.food.food_name
             ]
+
+
+class FoodsContainer(Viewer):
+
+    pantry = param.ClassSelector(class_=Pantry)
+
+    def handle_restriction_checkbox_clicked(self, event, restriction_name):
+        pass
+
+    def get_active_foods_fdc_ids(self, *args):
+        pass
+
+    def __panel__(self):
+        pass
+
+
+class FoodTabulatorContainer(FoodsContainer):
+
+    def __init__(self, **params):
+        super().__init__(**params)
+        self.food_tabulator = self.get_food_tabulator()
+
+    def row_content(row):
+        link = f"https://fdc.nal.usda.gov/food-details/{row['fdc_id']}/nutrients?printable=true"
+        return pn.pane.HTML(
+            f'<iframe src="{link}" width="100%" height="200px"></iframe>',
+            sizing_mode="stretch_width",
+        )
+        # with open("nutrition_facts.html", "r") as file:
+        #     nutrition_facts = pn.pane.HTML(file.read())
+        # return nutrition_facts
+
+        # return pn.pane.Markdown(f"# {row['food_name']}")
+
+    def get_food_tabulator(self):
+        foods = {
+            fdc_id: {"food_name": food.food_name, "price": food.price.price_per_100_g}
+            for fdc_id, food in self.pantry.foods.items()
+        }
+        foods_df = pd.DataFrame(foods).T
+        foods_df["active"] = True
+        foods_df.index.name = "fdc_id"
+
+        tabulator = pn.widgets.Tabulator(
+            foods_df.reset_index(),
+            selectable="checkbox",
+            row_content=FoodTabulatorContainer.row_content,
+            show_index=False,
+            formatters={
+                "price": NumberFormatter(format="0.00"),
+                "active": BooleanFormatter(),
+                "fdc_id": NumberFormatter(format="0"),
+            },
+            stylesheets=[TABULATOR_STYLESHEET],
+        )
+        return tabulator
+
+    def __panel__(self):
+        return self.food_tabulator
 
 
 class FoodBoxesContainer(Viewer):

@@ -6,20 +6,7 @@ import pandas as pd
 from bokeh.models.widgets.tables import NumberFormatter
 from config import *
 
-FOOD_TABLE_MAPPINGS = {
-    "food_name": "Food",
-    "amount": "Weight (g)",
-    "cost": "Total Cost ($)",
-    "price_per_100_g": "Price per 100g ($)",
-}
-
-FOOD_TABLE_COLUMNS = list(FOOD_TABLE_MAPPINGS.keys())
-
-TABULATOR_STYLESHEET = """
-    :host {
-        margin: 0;
-    }
-"""
+SHADOW_PRICES_DISPLAY_COLUMNS = ["nutrient_names", "constraint_type", "pi"]
 
 
 class AggregateResultInfo(Viewer):
@@ -114,6 +101,40 @@ class AggregateResultNutritionFacts(Viewer):
         return self._layout
 
 
+class ShadowPrices(Viewer):
+    food_optimizer = param.ClassSelector(class_=FoodOptimizer)
+    nutrient_bank = param.ClassSelector(class_=NutrientBank)
+
+    def translate_nutrient_nbrs(self, nutrient_nbrs: str):
+        nutrient_nbrs = nutrient_nbrs.split("_")
+        nutrient_names = []
+        for nbr in nutrient_nbrs:
+            nutrient = self.nutrient_bank.get_nutrient_by_id(int(nbr))
+            if nutrient is not None:
+                nutrient_names.append(nutrient.nutrient_name)
+        return " + ".join(nutrient_names)
+
+    def __init__(self, **params):
+        super().__init__(**params)
+        self.shadow_prices = self.food_optimizer.get_shadow_prices()
+        self.shadow_prices[["nutrient_nbrs", "constraint_type"]] = (
+            self.shadow_prices.constraint_name.str.split(":", expand=True)
+        )
+        self.shadow_prices["nutrient_names"] = self.shadow_prices[
+            "nutrient_nbrs"
+        ].apply(self.translate_nutrient_nbrs)
+
+    def _layout(self, show_all=False):
+        return pn.widgets.Tabulator(
+            self.shadow_prices.loc[(self.shadow_prices.pi != 0) | show_all][
+                SHADOW_PRICES_DISPLAY_COLUMNS
+            ]
+        )
+
+    def __panel__(self):
+        return self._layout
+
+
 class Results(Viewer):
 
     food_optimizer = param.ClassSelector(class_=FoodOptimizer, doc="The FoodOptimizer")
@@ -142,6 +163,10 @@ class Results(Viewer):
             optimal_foods=self.optimal_foods,
             nutrient_bank=self.nutrient_bank,
         )
+
+        self.shadow_prices = ShadowPrices(
+            food_optimizer=self.food_optimizer, nutrient_bank=self.nutrient_bank
+        )
         # print(self.get_aggregate_nutrition_facts().sum())
 
     def _layout(self):
@@ -151,6 +176,8 @@ class Results(Viewer):
             pn.Accordion(("Food Info", self.optimal_foods_tabulator)),
             pn.pane.Markdown("## Nutrition Facts"),
             pn.Accordion(("Nutrition Facts", self.aggregate_result_nutrition_facts)),
+            pn.pane.Markdown("## Shadow Prices"),
+            pn.Accordion(("Shadow Prices", self.shadow_prices)),
         )
 
     def get_aggregate_results_info(self):

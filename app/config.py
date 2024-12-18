@@ -20,3 +20,18 @@ FOOD_RESTRICTION_NAME_MAPPINGS = {
     "fish_shellfish_free": "Fish/Shellfish-Free",
     "nut_free": "Nut-Free",
 }
+
+FOOD_TABLE_MAPPINGS = {
+    "food_name": "Food",
+    "amount": "Weight (g)",
+    "cost": "Total Cost ($)",
+    "price_per_100_g": "Price per 100g ($)",
+}
+
+FOOD_TABLE_COLUMNS = list(FOOD_TABLE_MAPPINGS.keys())
+
+TABULATOR_STYLESHEET = """
+    :host {
+        margin: 0;
+    }
+"""
