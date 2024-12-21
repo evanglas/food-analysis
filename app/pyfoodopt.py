@@ -457,10 +457,12 @@ class FoodOptimizer(param.Parameterized):
                         )
 
                 slack_var_up = pulp.LpVariable(
-                    f"slack {nutrient_nbrs} {constraint_type} up", lowBound=0
+                    f"slack@{";".join([str(n) for n in nutrient_nbrs])}@{constraint_type}@up",
+                    lowBound=0,
                 )
                 slack_var_down = pulp.LpVariable(
-                    f"slack {nutrient_nbrs} {constraint_type} down", lowBound=0
+                    f"slack@{";".join([str(n) for n in nutrient_nbrs])}@{constraint_type}@down",
+                    lowBound=0,
                 )
                 slack_vars.append(slack_var_up)
                 slack_vars.append(slack_var_down)
@@ -485,6 +487,41 @@ class FoodOptimizer(param.Parameterized):
         status = prob.solve()
         self.results.append(prob)
         return status
+
+    def parse_slack_variable_name(self, name):
+        parts = name.split("@")
+        nutrient_nbrs = parts[1].split(";")
+        constraint_type = parts[2]
+        constraint_direction = parts[3]
+        return nutrient_nbrs, constraint_type, constraint_direction
+
+    def get_slack_variables(self, prob=None):
+        if prob is None:
+            prob = self.results[-1]
+
+        slack_vars = []
+        for v in prob.variables():
+            if v.name[:5] == "slack":
+                nutrient_nbrs, constraint_type, constraint_direction = (
+                    self.parse_slack_variable_name(v.name)
+                )
+                slack_vars.append(
+                    [
+                        ";".join(nutrient_nbrs),
+                        constraint_type,
+                        constraint_direction,
+                        v.varValue,
+                    ]
+                )
+        return pd.DataFrame(
+            slack_vars,
+            columns=[
+                "nutrient_nbrs",
+                "constraint_type",
+                "constraint_direction",
+                "slack_value",
+            ],
+        )
 
     def get_optimal_foods(self, prob=None):
         if prob is None:

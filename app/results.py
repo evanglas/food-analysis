@@ -7,6 +7,78 @@ from bokeh.models.widgets.tables import NumberFormatter
 from config import *
 
 SHADOW_PRICES_DISPLAY_COLUMNS = ["nutrient_names", "constraint_type", "pi"]
+OPTIMIZATION_FAIL_MARKDOWN = pn.pane.Markdown(
+    """
+    ## Optimization Unsuccessful
+    ### The optimization was unsuccessful. Please try again with different constraints or foods.
+    """
+)
+
+SLACK_VARIABLES_EXPLANATION_MARKDOWN = pn.pane.Markdown(
+    """
+    ## Slack Variables
+    - PyFoodOpt implements slack variables in the optimization process. Eack slack variable is multiplied by 10,000 so that their values will almost always be zero for solveable problems.
+    - PyFoodOpt uses two slack variables for each constraint, one "up" and one "down" which add slack in opposing directions. Two slack variables were used to avoid the need for an absolute value function in the objective function.
+    """
+)
+
+
+def translate_nutrient_nbrs(nutrient_bank, nutrient_nbrs: str, delim="_"):
+    nutrient_nbrs = nutrient_nbrs.split(delim)
+    nutrient_names = []
+    for nbr in nutrient_nbrs:
+        nutrient = nutrient_bank.get_nutrient_by_id(int(nbr))
+        if nutrient is not None:
+            nutrient_names.append(nutrient.nutrient_name)
+    return " + ".join(nutrient_names)
+
+
+class OptimizationFailInfo(Viewer):
+
+    TABULATOR_COLUMNS = [
+        "nutrient_names",
+        "constraint_type",
+        "constraint_direction",
+        "slack_value",
+    ]
+
+    food_optimizer = param.ClassSelector(class_=FoodOptimizer)
+    nutrient_bank = param.ClassSelector(class_=NutrientBank)
+
+    def __init__(self, **params):
+        super().__init__(**params)
+        self.slack_variables = self.food_optimizer.get_slack_variables()
+
+    def get_slack_vars_tabulator(self):
+        self.slack_variables["nutrient_names"] = (
+            self.slack_variables.nutrient_nbrs.apply(
+                lambda x: translate_nutrient_nbrs(self.nutrient_bank, x, delim=";")
+            )
+        )
+        return pn.widgets.Tabulator(
+            self.slack_variables.loc[self.slack_variables.slack_value != 0][
+                OptimizationFailInfo.TABULATOR_COLUMNS
+            ],
+            titles={
+                "nutrient_names": "Nutrients",
+                "slack_value": "Value",
+                "constraint_type": "Constraint Type",
+                "constraint_direction": "Direction",
+            },
+            show_index=False,
+            disabled=True,
+        )
+
+    def _layout(self):
+        return pn.Column(
+            pn.widgets.ButtonIcon(icon="alert-hexagon", disabled=True, size="100px"),
+            OPTIMIZATION_FAIL_MARKDOWN,
+            SLACK_VARIABLES_EXPLANATION_MARKDOWN,
+            pn.Accordion(("Slack Variables", self.get_slack_vars_tabulator())),
+        )
+
+    def __panel__(self):
+        return self._layout()
 
 
 class AggregateResultInfo(Viewer):
@@ -64,6 +136,7 @@ class AggregateResultNutritionFacts(Viewer):
             show_index=False,
             formatters=AggregateResultNutritionFacts.tabulator_formatters,
             stylesheets=[TABULATOR_STYLESHEET],
+            disabled=True,
         )
         return tabulator
 
@@ -105,15 +178,6 @@ class ShadowPrices(Viewer):
     food_optimizer = param.ClassSelector(class_=FoodOptimizer)
     nutrient_bank = param.ClassSelector(class_=NutrientBank)
 
-    def translate_nutrient_nbrs(self, nutrient_nbrs: str):
-        nutrient_nbrs = nutrient_nbrs.split("_")
-        nutrient_names = []
-        for nbr in nutrient_nbrs:
-            nutrient = self.nutrient_bank.get_nutrient_by_id(int(nbr))
-            if nutrient is not None:
-                nutrient_names.append(nutrient.nutrient_name)
-        return " + ".join(nutrient_names)
-
     def __init__(self, **params):
         super().__init__(**params)
         self.shadow_prices = self.food_optimizer.get_shadow_prices()
@@ -122,7 +186,7 @@ class ShadowPrices(Viewer):
         )
         self.shadow_prices["nutrient_names"] = self.shadow_prices[
             "nutrient_nbrs"
-        ].apply(self.translate_nutrient_nbrs)
+        ].apply(lambda x: translate_nutrient_nbrs(self.nutrient_bank, x))
 
     def _layout(self, show_all=False):
         return pn.widgets.Tabulator(
@@ -137,11 +201,17 @@ class ShadowPrices(Viewer):
 
 class Results(Viewer):
 
+    solved = param.Boolean(default=True)
     food_optimizer = param.ClassSelector(class_=FoodOptimizer, doc="The FoodOptimizer")
     nutrient_bank = param.ClassSelector(class_=NutrientBank)
 
     def __init__(self, **params):
         super().__init__(**params)
+
+        if not self.problem_solved():
+            self.solved = False
+            return
+
         self.optimal_foods = self.food_optimizer.get_optimal_foods()
         self.optimal_foods["food_name"] = self.optimal_foods["food_name"].str.replace(
             "_", " "
@@ -153,6 +223,7 @@ class Results(Viewer):
             show_index=False,
             layout="fit_data_table",
             stylesheets=[TABULATOR_STYLESHEET],
+            disabled=True,
         )
         self.aggregate_result_info = AggregateResultInfo(
             cost=self.optimal_foods.cost.sum(), n_foods=self.optimal_foods.shape[0]
@@ -167,9 +238,22 @@ class Results(Viewer):
         self.shadow_prices = ShadowPrices(
             food_optimizer=self.food_optimizer, nutrient_bank=self.nutrient_bank
         )
-        # print(self.get_aggregate_nutrition_facts().sum())
+
+    def problem_solved(self):
+        slack_variables = self.food_optimizer.get_slack_variables()
+        if slack_variables.slack_value.sum() != 0:
+            return False
+        return True
 
     def _layout(self):
+        if not self.solved:
+            return OptimizationFailInfo(
+                food_optimizer=self.food_optimizer, nutrient_bank=self.nutrient_bank
+            )
+        else:
+            return self._layout_successful()
+
+    def _layout_successful(self):
         return pn.Column(
             self.aggregate_result_info,
             pn.pane.Markdown("## Foods"),
