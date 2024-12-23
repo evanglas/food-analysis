@@ -5,23 +5,151 @@ import param
 NUTRIENT_BANK_PATH = "../data/nutrients.csv"
 nutrient_bank_df = pd.read_csv(NUTRIENT_BANK_PATH)
 
+# nutrient_constraints = pd.read_csv("../data/nutrient_constraints.csv")
+
 ADDITIONAL_NUTRIENT_NBRS = [312, 313]
 NBR_TO_NUTRIENT_NAME = nutrient_bank_df.set_index(
     "nutrient_nbr"
 ).nutrient_name.to_dict()
-NBR_TO_UNIT = nutrient_bank_df.set_index("nutrient_nbr").unit_name.to_dict()
+NBR_TO_UNIT = (
+    nutrient_bank_df.set_index("nutrient_nbr")
+    .unit_name.map({"G": "g", "MG": "mg", "UG": "ug"})
+    .to_dict()
+)
+
+MAIN_NBRS = {
+    208: "calories",
+    204: "total_fat",
+    606: "saturated_fat",
+    605: "trans_fat",
+    601: "cholesterol",
+    307: "sodium",
+    205: "carb",
+    291: "dietary_fiber",
+    269: "total_sugars",
+    203: "protein",
+}
+
+HTML_STYLE = """
+<style>
+    * {
+    box-sizing: border-box;
+  }
+  
+  html {
+    font-size: 16px;
+  }
+  
+  body {
+    font-family: 'Open Sans', sans-serif;
+  }
+  
+  .label {
+    border: 2px solid black;
+    width: 270px;
+    margin: 20px auto;
+    padding: 0 7px;
+  }
+  
+  header h1 {
+    text-align: center;
+    margin: -4px 0;
+    letter-spacing: 0.15px
+  }
+  
+  p {
+    margin: 0;
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .divider {
+    border-bottom: 1px solid #888989;
+    margin: 2px 0;
+  }
+  
+  .bold {
+    font-weight: 800;
+  }
+  
+  .large {
+    height: 10px;
+  }
+  
+  .large, .medium {
+    background-color: black;
+    border: 0;
+  }
+  
+  .medium {
+    height: 5px;
+  }
+  
+  .small-text {
+    font-size: 0.85rem;
+  }
+  
+  
+  .calories-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  
+  .calories-info h2 {
+    margin: 0;
+  }
+  
+  .left-container p {
+    margin: -5px -2px;
+    font-size: 2em;
+    font-weight: 700;
+  }
+  
+  .calories-info span {
+    margin: -7px -2px;
+    font-size: 2.4em;
+    font-weight: 700;
+  }
+  
+  .right {
+    justify-content: flex-end;
+  }
+  
+  .indent {
+    margin-left: 1em;
+  }
+  
+  .double-indent {
+    margin-left: 2em;
+  }
+  
+  .daily-value p:not(.no-divider) {
+    border-bottom: 1px solid #888989;
+  }
+  
+  .note {
+    font-size: 0.6rem;
+    margin: 5px 0;
+    padding:8px;
+    text-indent:-8px;
+  }
+</style>
+"""
 
 
 class NutritionFactsView(param.Parameterized):
     nbr_to_amount = param.Dict()
-    additional_nutrient_nbrs = param.List(
-        item_type=int, default=ADDITIONAL_NUTRIENT_NBRS
-    )
+    additional_nutrient_nbrs = param.List(item_type=int, default=[])
     nbr_to_nutrient_name = param.Dict(default=NBR_TO_NUTRIENT_NAME)
     nbr_to_unit = param.Dict(default=NBR_TO_UNIT)
 
     def __init__(self, **params):
         super().__init__(**params)
+        if not self.additional_nutrient_nbrs:
+            self.additional_nutrient_nbrs = [
+                nbr for nbr in self.nbr_to_amount if nbr not in MAIN_NBRS
+            ]
 
     def get_head(self):
         return """<head>
@@ -54,9 +182,19 @@ class NutritionFactsView(param.Parameterized):
                 """
         html += f"<span>{self.nbr_to_amount[calories_nbr]}</span>"
         html += "</div>"
+        html += self.get_divider(classes=["medium"])
         return html
 
-    def get_daily_value_html(self):
+    def get_nutrients_box(self):
+        html = """<div class="daily-value small-text">"""
+        html += self.get_daily_value_text_html()
+        html += self.get_divider()
+        html += self.get_main_nutrients_html()
+        html += self.get_additional_nutrients_html()
+        html += "</div>"
+        return html
+
+    def get_daily_value_text_html(self):
         return """<p class="bold right no-divider">% Daily Value *</p>"""
 
     def get_fat_div_html(self):
@@ -133,6 +271,8 @@ class NutritionFactsView(param.Parameterized):
     def get_main_nutrient_dv_html(self, dv):
         if dv is not None:
             return f'<span class="bold">{dv}%</span>'
+        else:
+            return f'<span class="bold">N/A %</span>'
         return ""
 
     def get_main_nutrients_html(self):
@@ -149,9 +289,7 @@ class NutritionFactsView(param.Parameterized):
         )
         for i, nbr in enumerate(self.additional_nutrient_nbrs):
             amount = self.nbr_to_amount.get(nbr, 0)
-            if i != 0:
-                html += self.get_divider()
-            if i == len(self.additional_nutrient_nbrs):
+            if i == len(self.additional_nutrient_nbrs) - 1:
                 html += self.get_additional_nutrient_html(
                     nutrient_name=self.nbr_to_nutrient_name.get(nbr),
                     amount=amount,
@@ -172,7 +310,7 @@ class NutritionFactsView(param.Parameterized):
     def get_additional_nutrient_html(
         self, nutrient_name, amount, unit=None, dv=None, classes=[]
     ):
-        return f'<p class="{" ".join(classes)}">{nutrient_name} {amount}{unit} <span>{dv}%</span></p>'
+        return f'<p class="{" ".join(classes)}">{nutrient_name} {amount}{unit} <span>{"N/A " if dv is None else dv}%</span></p>'
 
     def get_footer_html(self):
         return """<div class="divider medium"></div>
@@ -181,19 +319,16 @@ class NutritionFactsView(param.Parameterized):
             diet. 2,000 calories a day is used for general nutrition advice.</p>"""
 
     def get_nutrition_facts_body(self):
-        html += """<body><div class="label">"""
+        html = """<body><div class="label">"""
         html += self.get_header_html()
         html += self.get_calories_html()
-        html += self.get_daily_value_html()
-        html += self.get_divider()
-        html += self.get_main_nutrients_html()
-        html += self.get_additional_nutrients_html()
+        html += self.get_nutrients_box()
         html += self.get_footer_html()
         html += """</div></body>"""
-        html += "</div>"
         return html
 
     def get_nutrition_facts_html(self):
-        html = self.get_head()
+        html = HTML_STYLE
+        html += self.get_head()
         html += self.get_nutrition_facts_body()
         return html
