@@ -20,7 +20,7 @@ pn.extension("tabulator")
 nb = NutrientBank()
 nb.build_nutrient_bank_from_csv("data/nutrients_no_duplicate_nbrs.csv")
 constraints = Constraints()
-constraints.add_nutrient_constraints_from_json("data/nutrient_constraints_2.json")
+constraints.add_nutrient_constraints_from_json("data/nutrient_constraints_full_1.json")
 pantry = Pantry()
 pantry.build_pantry_from_json("data/food_data.json")
 
@@ -35,7 +35,9 @@ instructions_wrapper = pn.FlexBox(
 
 
 nutrient_constraints_widgets = NutrientConstraints(
-    constraints=constraints, nutrient_bank=nb
+    constraints=constraints,
+    nutrient_bank=nb,
+    constraint_checkbox_on_click=lambda x: print(x),
 )
 
 nutrient_config_tab = pn.FlexBox(
@@ -55,8 +57,9 @@ results_container = ResultsContainer()
 def optimize(event):
     nutrient_constraints = nutrient_constraints_widgets.get_constraints()
     nutrient_constraints = Constraints(nutrient_constraints=nutrient_constraints)
-    active_food_fdc_ids = food_config.get_active_foods_fdc_ids()
-    pantry.set_active_foods(active_food_fdc_ids)
+    active_fdc_ids_to_prices = food_config.get_active_fdc_ids_and_prices()
+    pantry.set_active_foods(list(active_fdc_ids_to_prices.keys()))
+    pantry.set_prices(active_fdc_ids_to_prices)
 
     fo = FoodOptimizer(pantry=pantry, constraints=nutrient_constraints)
 

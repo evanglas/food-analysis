@@ -46,6 +46,11 @@ class BasePrice(param.Parameterized):
     )
     price_dollars = param.Number(default=None, bounds=(0.0, None), doc="Price of food")
     weight = param.Number(default=None, bounds=(0.0, None), doc="Weight of food")
+    original_price_per_100_g = param.Number(
+        default=None,
+        bounds=(0.0, None),
+        doc="Original price per 100 g of food",
+    )
     # weight_units = param.ClassSelector(
     #     class_=UNITS, default=UNITS.g, doc="Units of weight"
     # )
@@ -59,10 +64,12 @@ class BasePrice(param.Parameterized):
     ):
         super().__init__(**params)
         if params.get("price_per_100_g") is not None:
+            self.original_price_per_100_g = self.price_per_100_g
             return
         if price_dollars and weight and weight_units:
             weight_grams = (weight * weight_units.value).to(ureg.gram).magnitude
             self.price_per_100_g = price_dollars / (weight_grams / 100)
+            self.original_price_per_100_g = self.price_per_100_g
 
 
 class FoodName(param.Parameterized):
@@ -170,6 +177,10 @@ class Pantry(param.Parameterized):
 
     def set_active_foods(self, fdc_ids: list):
         self.active_foods = set(fdc_ids)
+
+    def set_prices(self, fdc_id_to_price: dict):
+        for fdc_id, price in fdc_id_to_price.items():
+            self.foods[fdc_id].price.price_per_100_g = price
 
     def activate_food(self, fdc_id: int):
         self.active_foods.add(fdc_id)
@@ -348,13 +359,17 @@ class Constraints(param.Parameterized):
         ] = nutrient_constraint
         self.nconstraints_added += 1
 
-    def add_nutrient_constraints_from_json(self, json_path):
+    def add_nutrient_constraints_from_json(
+        self, json_path, age_sex="male", age_range="19-30"
+    ):
         with open(json_path, "r") as f:
             data = json.load(f)
         for constraint_id, info in data.items():
             nutrient_nbrs = [int(nbr) for nbr in constraint_id.split(";")]
             nbr_to_coefficient = {nbr: 1 for nbr in nutrient_nbrs}
-            for constraint_type, constraint_value in info["constraints"].items():
+            for constraint_type, constraint_value in info["constraints"][age_sex][
+                age_range
+            ].items():
                 if constraint_type not in CONSTRAINT_TYPES:
                     continue
                 constraint = NutrientConstraint(

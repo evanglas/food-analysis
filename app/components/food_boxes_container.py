@@ -9,6 +9,7 @@ from bokeh.models.widgets.tables import (
     BooleanFormatter,
     HTMLTemplateFormatter,
 )
+from bokeh.models.widgets.tables import NumberEditor
 
 # from nutrition_facts import NutritionFactsView
 from config import *
@@ -78,6 +79,9 @@ class FoodsContainer(Viewer):
     def __panel__(self):
         pass
 
+    def get_active_fdc_ids_and_prices(self, *args):
+        pass
+
 
 class FoodTabulatorContainer(FoodsContainer):
 
@@ -115,6 +119,7 @@ class FoodTabulatorContainer(FoodsContainer):
                 # "active": BooleanFormatter(),
                 "food_link": FoodTabulatorContainer.food_link_formatter,
             },
+            editors={"price": NumberEditor(), "food_link": None},
             titles={
                 "food_link": "Food",
                 "price": "Price ($/100g)",
@@ -150,6 +155,15 @@ class FoodTabulatorContainer(FoodsContainer):
         new_selection = self.food_tabulator.value[is_selected].index.tolist()
         self.food_tabulator.selection = new_selection
 
+    def get_active_fdc_ids_and_prices(self, *args) -> dict:
+        return (
+            self.food_tabulator.value.loc[self.food_tabulator.selection][
+                ["fdc_id", "price"]
+            ]
+            .set_index("fdc_id")
+            .price.to_dict()
+        )
+
     def __panel__(self):
         return self.food_tabulator
 
@@ -168,6 +182,7 @@ class ChecksAndFoodsContainer(Viewer):
     def _layout(self):
         return pn.Column(
             self.restriction_checks,
+            pn.Row(self.food_config_search_box, self.search_box_clear_button),
             self.food_tabulator_container,
         )
 
@@ -261,6 +276,31 @@ class FoodConfig(Viewer):
             on_click=self.foods_container.handle_restriction_checkbox_clicked,
             food_restriction_name_mappings=self.food_restriction_name_mappings,
         )
+        self.food_config_search_box = pn.widgets.TextInput(
+            placeholder="Search Foods",
+            # options=[fb.food.food_name for fb in self.food_boxes_list.food_boxes],
+            # case_sensitive=False,
+            # search_strategy="includes",
+            # restrict=False,
+        )
+
+        def contains_filter(df, pattern, column):
+            if not pattern:
+                return df
+            return df[df[column].str.lower().str.contains(pattern.lower())]
+
+        self.foods_container.food_tabulator.add_filter(
+            pn.bind(
+                contains_filter, pattern=self.food_config_search_box, column="food_name"
+            )
+        )
+
+        def clear_search_box(event):
+            self.food_config_search_box.value = ""
+
+        self.search_box_clear_button = pn.widgets.Button(
+            name="Clear", button_type="primary", on_click=clear_search_box
+        )
 
     def _layout(self):
 
@@ -272,6 +312,7 @@ class FoodConfig(Viewer):
 
         food_config_tab = pn.FlexBox(
             self.restriction_checks,
+            pn.Row(self.food_config_search_box, self.search_box_clear_button),
             food_config_foods,
             name="Foods",
         )
@@ -280,6 +321,9 @@ class FoodConfig(Viewer):
 
     def get_active_foods_fdc_ids(self, *args):
         return self.foods_container.get_active_foods_fdc_ids()
+
+    def get_active_fdc_ids_and_prices(self, *args):
+        return self.foods_container.get_active_fdc_ids_and_prices()
 
     def __panel__(self):
         return self._layout

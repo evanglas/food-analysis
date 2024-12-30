@@ -5,14 +5,72 @@ from components.nutrient_constraint_widget import NutrientConstraintWidget
 import panel as pn
 
 
+class NutrientConstraintCheckBox(pn.widgets.Checkbox):
+
+    def __init__(self, on_click, **params):
+        super().__init__(**params)
+        self._on_click = on_click
+        self.rx.watch(self._on_click, "value")
+
+
+class NutrientConstraintChecks(Viewer):
+
+    constraint_options = param.List(item_type=dict)
+
+    def __init__(self, on_click, **params):
+        super().__init__(**params)
+        self._on_click = on_click
+
+    def _layout(self):
+        return pn.GridBox(
+            *[
+                NutrientConstraintCheckBox(
+                    on_click=self._on_click,
+                    name=constraint_option["age_sex"]
+                    + " "
+                    + constraint_option["age_range"],
+                )
+                for constraint_option in self.constraint_options
+            ],
+            ncols=4,
+        )
+
+    def __panel__(self):
+        return self._layout
+
+
 class NutrientConstraints(Viewer):
 
     constraints = param.ClassSelector(class_=Constraints)
     nutrient_bank = param.ClassSelector(class_=NutrientBank)
+    constraint_widgets = param.List(default=[])
 
-    def __init__(self, **params):
+    def __init__(self, constraint_checkbox_on_click, **params):
         super().__init__(**params)
-        self.constraint_widgets = []
+        self.constraint_checkboxes = NutrientConstraintChecks(
+            constraint_options=[
+                {"age_sex": "child", "age_range": "1-3"},
+                {"age_sex": "female", "age_range": "4-8"},
+                {"age_sex": "male", "age_range": "4-8"},
+                {"age_sex": "female", "age_range": "9-13"},
+                {"age_sex": "male", "age_range": "9-13"},
+                {"age_sex": "female", "age_range": "14-18"},
+                {"age_sex": "male", "age_range": "14-18"},
+                {"age_sex": "female", "age_range": "19-30"},
+                {"age_sex": "male", "age_range": "19-30"},
+                {"age_sex": "female", "age_range": "31-50"},
+                {"age_sex": "male", "age_range": "31-50"},
+                {"age_sex": "female", "age_range": "51+"},
+                {"age_sex": "male", "age_range": "51+"},
+            ],
+            on_click=constraint_checkbox_on_click,
+        )
+        self.constraint_checkbox_on_click = constraint_checkbox_on_click
+        self.set_constraint_widgets()
+
+    @param.depends("constraints", watch=True)
+    def set_constraint_widgets(self):
+        constraint_widgets = []
         for (
             nutrient_nbrs,
             nbr_constraints,
@@ -36,7 +94,7 @@ class NutrientConstraints(Viewer):
                 upper_bound = upper_bound.constraint_value
             if equality is not None:
                 equality = equality.constraint_value
-            self.constraint_widgets.append(
+            constraint_widgets.append(
                 NutrientConstraintWidget(
                     nutrient_nbrs=nutrient_nbrs,
                     label=label,
@@ -45,7 +103,12 @@ class NutrientConstraints(Viewer):
                     equality=equality,
                 )
             )
-        self._layout = pn.Column(
+        self.constraint_widgets = constraint_widgets
+
+    @param.depends("constraint_widgets", watch=True)
+    def _layout(self):
+        return pn.Column(
+            self.constraint_checkboxes,
             pn.FlexBox(
                 *self.constraint_widgets,
                 sizing_mode="stretch_width",
