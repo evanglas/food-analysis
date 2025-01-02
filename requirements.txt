@@ -1,0 +1,6 @@
+panel
+pandas
+pint 
+pulp
+numpy
+param

@@ -1,4 +1,8 @@
 *
 
 !app
-!.gitignore
+
+!.gitattributes
+!Dockerfile
+!README.md
+!requirements.txt
