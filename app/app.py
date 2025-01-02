@@ -1,17 +1,12 @@
 import panel as pn
 from pyfoodopt import *
 from config import *
-from components.food_box import FoodBox
 from components.food_boxes_container import *
-from components.nutrient_constraint_widget import NutrientConstraintWidget
 from components.nutrient_constraints import NutrientConstraints
 from components.optimize_button import OptimizeButton
-from components.restriction_checkbox import RestrictionCheckBox
 
-from results import *
-from instructions import instructions
-from config_tabs import ConfigTabs
-from navbar import navbar
+from components.results import *
+from components.instructions import instructions
 from config import *
 
 pn.extension("tabulator")
@@ -19,8 +14,6 @@ pn.extension("tabulator")
 
 nb = NutrientBank()
 nb.build_nutrient_bank_from_csv("data/nutrients_no_duplicate_nbrs.csv")
-constraints = Constraints()
-constraints.add_nutrient_constraints_from_json("data/nutrient_constraints_full_1.json")
 pantry = Pantry()
 pantry.build_pantry_from_json("data/food_data.json")
 
