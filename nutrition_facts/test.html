@@ -1,0 +1,127 @@
+
+<style>
+    * {
+    box-sizing: border-box;
+  }
+  
+  html {
+    font-size: 16px;
+  }
+  
+  body {
+    font-family: 'Open Sans', sans-serif;
+  }
+  
+  .label {
+    border: 2px solid black;
+    width: 270px;
+    margin: 20px auto;
+    padding: 0 7px;
+  }
+  
+  header h1 {
+    text-align: center;
+    margin: -4px 0;
+    letter-spacing: 0.15px
+  }
+  
+  p {
+    margin: 0;
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .divider {
+    border-bottom: 1px solid #888989;
+    margin: 2px 0;
+  }
+  
+  .bold {
+    font-weight: 800;
+  }
+  
+  .large {
+    height: 10px;
+  }
+  
+  .large, .medium {
+    background-color: black;
+    border: 0;
+  }
+  
+  .medium {
+    height: 5px;
+  }
+  
+  .small-text {
+    font-size: 0.85rem;
+  }
+  
+  
+  .calories-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  
+  .calories-info h2 {
+    margin: 0;
+  }
+  
+  .left-container p {
+    margin: -5px -2px;
+    font-size: 2em;
+    font-weight: 700;
+  }
+  
+  .calories-info span {
+    margin: -7px -2px;
+    font-size: 2.4em;
+    font-weight: 700;
+  }
+  
+  .right {
+    justify-content: flex-end;
+  }
+  
+  .indent {
+    margin-left: 1em;
+  }
+  
+  .double-indent {
+    margin-left: 2em;
+  }
+  
+  .daily-value p:not(.no-divider) {
+    border-bottom: 1px solid #888989;
+  }
+  
+  .note {
+    font-size: 0.6rem;
+    margin: 5px 0;
+    padding:8px;
+    text-indent:-8px;
+  }
+</style>
+<head>
+
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Nutrition Label</title>
+                    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700,800" rel="stylesheet">
+                    <link href="./nutrition_facts.css" rel="stylesheet">
+                </head>
+                <body><div class="label"><header>
+                    <h1 class="bold">Nutrition Facts</h1>
+                    <div class="divider"></div>
+                    <!-- <p>8 servings per container</p> --><p class="bold">Serving size <span>100g</span></p></header>
+                <div class="divider large"></div>
+                <div class="calories-info">
+                    <div class="left-container">
+                        <!-- <h2 class="bold small-text">Amount per serving</h2> -->
+                        <p>Calories</p>
+                    </div>
+                <span>50.0</span></div><div class='divider medium'></div><div class="daily-value small-text"><p class="bold right no-divider">% Daily Value *</p><div class='divider '></div><p><span><span class="bold">Total Fat</span> 1.98g</span><span class="bold">N/A %</span></p><p class="indent no-divider">Saturated Fat 1.257g <span class="bold">N/A %</span></p><div class='divider '></div><p class="indent no-divider"><span><i>Trans</i> Fat 0.085g</span></p><div class='divider '></div><p><span><span class="bold">Cholesterol</span> 8.0mg</span><span class="bold">N/A %</span></p><p><span><span class="bold">Sodium</span> 47.0mg</span><span class="bold">N/A %</span></p><p><span><span class="bold">Total Carbohydrate</span> 4.8g</span><span class="bold">N/A %</span></p><p class="indent no-divider">Dietary Fiber 0.0g</p><div class="divider"></div><p class="indent no-divider">Total Sugars 5.06g</p><div class="divider"></div><p class="no-divider"><span class="bold">Protein</span> 3.3g</p><div class='divider large'></div><p class="">Ash 0.71g <span>N/A %</span></p><p class="">Starch 0.0g <span>N/A %</span></p><p class="">Sucrose 0.01g <span>N/A %</span></p><p class="">Glucose 0.01g <span>N/A %</span></p><p class="">Fructose 0.01g <span>N/A %</span></p><p class="">Lactose 5.01g <span>N/A %</span></p><p class="">Maltose 0.01g <span>N/A %</span></p><p class="">Alcohol, ethyl 0.0g <span>N/A %</span></p><p class="">Water 89.21g <span>N/A %</span></p><p class="">Caffeine 0.0mg <span>N/A %</span></p><p class="">Theobromine 0.0mg <span>N/A %</span></p><p class="">Galactose 0.02g <span>N/A %</span></p><p class="">Calcium, Ca 120.0mg <span>N/A %</span></p><p class="">Iron, Fe 0.02mg <span>N/A %</span></p><p class="">Magnesium, Mg 11.0mg <span>N/A %</span></p><p class="">Phosphorus, P 92.0mg <span>N/A %</span></p><p class="">Potassium, K 140.0mg <span>N/A %</span></p><p class="">Zinc, Zn 0.48mg <span>N/A %</span></p><p class="">Copper, Cu 0.006mg <span>N/A %</span></p><p class="">Fluoride, F 3.4ug <span>N/A %</span></p><p class="">Manganese, Mn 0.014mg <span>N/A %</span></p><p class="">Selenium, Se 2.5ug <span>N/A %</span></p><p class="">Vitamin A, IU 190.0nan <span>N/A %</span></p><p class="">Retinol 55.0ug <span>N/A %</span></p><p class="">Vitamin A, RAE 55.0ug <span>N/A %</span></p><p class="">Carotene, beta 4.0ug <span>N/A %</span></p><p class="">Carotene, alpha 0.0ug <span>N/A %</span></p><p class="">Tocopherols and tocotrienols 0.03mg <span>N/A %</span></p><p class="">Vitamin D (D2 + D3), International Units 49.0nan <span>N/A %</span></p><p class="">Vitamin D2 (ergocalciferol) 0.0ug <span>N/A %</span></p><p class="">Vitamin D3 (cholecalciferol) 1.2ug <span>N/A %</span></p><p class="">Vitamin D (D2 + D3) 1.2ug <span>N/A %</span></p><p class="">Cryptoxanthin, beta 0.0ug <span>N/A %</span></p><p class="">trans-Lycopene 0.0ug <span>N/A %</span></p><p class="">cis-Lutein/Zeaxanthin 0.0ug <span>N/A %</span></p><p class="">Tocopherol, beta 0.0mg <span>N/A %</span></p><p class="">Tocopherol, gamma 0.0mg <span>N/A %</span></p><p class="">Tocopherol, delta 0.0mg <span>N/A %</span></p><p class="">Tocotrienol, alpha 0.0mg <span>N/A %</span></p><p class="">Tocotrienol, beta 0.0mg <span>N/A %</span></p><p class="">Tocotrienol, gamma 0.0mg <span>N/A %</span></p><p class="">Tocotrienol, delta 0.0mg <span>N/A %</span></p><p class="">Vitamin C, total ascorbic acid 0.2mg <span>N/A %</span></p><p class="">Thiamin 0.039mg <span>N/A %</span></p><p class="">Riboflavin 0.185mg <span>N/A %</span></p><p class="">Niacin 0.092mg <span>N/A %</span></p><p class="">Pantothenic acid 0.356mg <span>N/A %</span></p><p class="">Vitamin B-6 0.038mg <span>N/A %</span></p><p class="">Folate, total 5.0ug <span>N/A %</span></p><p class="">Vitamin B-12 0.53ug <span>N/A %</span></p><p class="">Choline, total 16.4mg <span>N/A %</span></p><p class="">Vitamin K (Menaquinone-4) 0.0ug <span>N/A %</span></p><p class="">Vitamin K (Dihydrophylloquinone) 0.0ug <span>N/A %</span></p><p class="">Vitamin K (phylloquinone) 0.2ug <span>N/A %</span></p><p class="">Folic acid 0.0ug <span>N/A %</span></p><p class="">Folate, food 5.0ug <span>N/A %</span></p><p class="">Folate, DFE 5.0ug <span>N/A %</span></p><p class="">Betaine 0.9mg <span>N/A %</span></p><p class="">Tryptophan 0.042g <span>N/A %</span></p><p class="">Threonine 0.141g <span>N/A %</span></p><p class="">Isoleucine 0.171g <span>N/A %</span></p><p class="">Leucine 0.313g <span>N/A %</span></p><p class="">Lysine 0.276g <span>N/A %</span></p><p class="">Methionine 0.087g <span>N/A %</span></p><p class="">Cystine 0.02g <span>N/A %</span></p><p class="">Phenylalanine 0.171g <span>N/A %</span></p><p class="">Tyrosine 0.167g <span>N/A %</span></p><p class="">Valine 0.216g <span>N/A %</span></p><p class="">Arginine 0.094g <span>N/A %</span></p><p class="">Histidine 0.1g <span>N/A %</span></p><p class="">Alanine 0.112g <span>N/A %</span></p><p class="">Aspartic acid 0.283g <span>N/A %</span></p><p class="">Glutamic acid 0.742g <span>N/A %</span></p><p class="">Glycine 0.065g <span>N/A %</span></p><p class="">Proline 0.326g <span>N/A %</span></p><p class="">Serine 0.199g <span>N/A %</span></p><p class="">Hydroxyproline 0.0g <span>N/A %</span></p><p class="">Vitamin E, added 0.0mg <span>N/A %</span></p><p class="">Vitamin B-12, added 0.0ug <span>N/A %</span></p><p class="">SFA 4:0 0.077g <span>N/A %</span></p><p class="">SFA 6:0 0.04g <span>N/A %</span></p><p class="">SFA 8:0 0.02g <span>N/A %</span></p><p class="">SFA 10:0 0.049g <span>N/A %</span></p><p class="">SFA 12:0 0.055g <span>N/A %</span></p><p class="">SFA 14:0 0.175g <span>N/A %</span></p><p class="">SFA 16:0 0.558g <span>N/A %</span></p><p class="">SFA 18:0 0.243g <span>N/A %</span></p><p class="">SFA 20:0 0.004g <span>N/A %</span></p><p class="">MUFA 18:1 0.508g <span>N/A %</span></p><p class="">PUFA 18:2 0.062g <span>N/A %</span></p><p class="">PUFA 18:3 0.008g <span>N/A %</span></p><p class="">PUFA 20:4 0.0g <span>N/A %</span></p><p class="">PUFA 22:6 n-3 (DHA) 0.0g <span>N/A %</span></p><p class="">SFA 22:0 0.002g <span>N/A %</span></p><p class="">MUFA 14:1 0.015g <span>N/A %</span></p><p class="">MUFA 16:1 0.027g <span>N/A %</span></p><p class="">PUFA 18:4 0.0g <span>N/A %</span></p><p class="">MUFA 20:1 0.002g <span>N/A %</span></p><p class="">PUFA 20:5 n-3 (EPA) 0.0g <span>N/A %</span></p><p class="">MUFA 22:1 0.0g <span>N/A %</span></p><p class="">PUFA 22:5 n-3 (DPA) 0.0g <span>N/A %</span></p><p class="">Phytosterols 0.0mg <span>N/A %</span></p><p class="">Stigmasterol 0.0mg <span>N/A %</span></p><p class="">Campesterol 0.0mg <span>N/A %</span></p><p class="">Beta-sitosterol 0.0mg <span>N/A %</span></p><p class="">Fatty acids, total monounsaturated 0.56g <span>N/A %</span></p><p class="">Fatty acids, total polyunsaturated 0.073g <span>N/A %</span></p><p class="">SFA 15:0 0.02g <span>N/A %</span></p><p class="">SFA 17:0 0.011g <span>N/A %</span></p><p class="">SFA 24:0 0.0g <span>N/A %</span></p><p class="">TFA 16:1 t 0.0g <span>N/A %</span></p><p class="">TFA 18:1 t 0.078g <span>N/A %</span></p><p class="">TFA 22:1 t 0.0g <span>N/A %</span></p><p class="">TFA 18:2 t not further defined 0.0g <span>N/A %</span></p><p class="">PUFA 18:2 i 0.007g <span>N/A %</span></p><p class="">PUFA 18:2 CLAs 0.0g <span>N/A %</span></p><p class="">MUFA 24:1 c 0.0g <span>N/A %</span></p><p class="">PUFA 20:2 n-6 c,c 0.0g <span>N/A %</span></p><p class="">MUFA 16:1 c 0.027g <span>N/A %</span></p><p class="">MUFA 18:1 c 0.43g <span>N/A %</span></p><p class="">PUFA 18:2 n-6 c,c 0.055g <span>N/A %</span></p><p class="">MUFA 22:1 c 0.0g <span>N/A %</span></p><p class="">PUFA 18:3 n-6 c,c,c 0.0g <span>N/A %</span></p><p class="">MUFA 17:1 0.005g <span>N/A %</span></p><p class="">PUFA 20:3 0.003g <span>N/A %</span></p><p class="">Fatty acids, total trans-monoenoic 0.078g <span>N/A %</span></p><p class="">Fatty acids, total trans-polyenoic 0.007g <span>N/A %</span></p><p class="">SFA 13:0 0.002g <span>N/A %</span></p><p class="">MUFA 15:1 0.004g <span>N/A %</span></p><p class="">PUFA 18:3 n-3 c,c,c (ALA) 0.008g <span>N/A %</span></p><p class="">PUFA 20:3 n-3 0.0g <span>N/A %</span></p><p class="">PUFA 20:4 n-6 0.0g <span>N/A %</span></p><p class="">PUFA 18:3i 0.0g <span>N/A %</span></p><p class="">PUFA 21:5 0.0g <span>N/A %</span></p><p class="no-divider">PUFA 22:4 0.0g <span>N/A %</span></p></div><div class="divider medium"></div>
+        <p class="note">* The % Daily Value (DV) tells you how much a nutrient in a serving of food contributes to a
+            daily
+            diet. 2,000 calories a day is used for general nutrition advice.</p></div></body>
