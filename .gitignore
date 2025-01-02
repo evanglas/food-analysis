@@ -1,6 +1,3 @@
-data
-fndds
-food_db
-legacy
-old
-tfp_model
+*
+
+!app/
