@@ -13,27 +13,33 @@ class NutrientConstraintCheckBox(pn.widgets.Checkbox):
         self.rx.watch(self._on_click, "value")
 
 
-class NutrientConstraintChecks(Viewer):
+class NutrientConstraintDefaultSelector(Viewer):
 
     constraint_options = param.List(item_type=dict)
 
     def __init__(self, on_click, **params):
         super().__init__(**params)
         self._on_click = on_click
+        self.select = pn.widgets.Select(
+            options={
+                constraint_option["age_sex"]
+                + " "
+                + constraint_option["age_range"]: constraint_option
+                for constraint_option in self.constraint_options
+            }
+        )
+
+        def on_button_click(event):
+            self._on_click(self.select.value["age_sex"], self.select.value["age_range"])
+
+        self.set_constraints_button = pn.widgets.Button(
+            name="Set Constraints", button_type="primary"
+        )
+
+        pn.bind(on_button_click, self.set_constraints_button, watch=True)
 
     def _layout(self):
-        return pn.GridBox(
-            *[
-                NutrientConstraintCheckBox(
-                    on_click=self._on_click,
-                    name=constraint_option["age_sex"]
-                    + " "
-                    + constraint_option["age_range"],
-                )
-                for constraint_option in self.constraint_options
-            ],
-            ncols=4,
-        )
+        return pn.Row(self.select, self.set_constraints_button)
 
     def __panel__(self):
         return self._layout
@@ -41,13 +47,16 @@ class NutrientConstraintChecks(Viewer):
 
 class NutrientConstraints(Viewer):
 
-    constraints = param.ClassSelector(class_=Constraints)
+    constraints_file_path = param.String(constant=True)
+    age_sex = param.String(default="male")
+    age_range = param.String(default="19-30")
     nutrient_bank = param.ClassSelector(class_=NutrientBank)
-    constraint_widgets = param.List(default=[])
+    constraint_widgets = param.List(default=None)
 
-    def __init__(self, constraint_checkbox_on_click, **params):
+    def __init__(self, **params):
         super().__init__(**params)
-        self.constraint_checkboxes = NutrientConstraintChecks(
+        self.set_constraints()
+        self.constraint_selector = NutrientConstraintDefaultSelector(
             constraint_options=[
                 {"age_sex": "child", "age_range": "1-3"},
                 {"age_sex": "female", "age_range": "4-8"},
@@ -63,13 +72,25 @@ class NutrientConstraints(Viewer):
                 {"age_sex": "female", "age_range": "51+"},
                 {"age_sex": "male", "age_range": "51+"},
             ],
-            on_click=constraint_checkbox_on_click,
+            on_click=self.set_age_sex_and_age_range,
         )
-        self.constraint_checkbox_on_click = constraint_checkbox_on_click
         self.set_constraint_widgets()
 
-    @param.depends("constraints", watch=True)
+    def set_age_sex_and_age_range(self, age_sex="male", age_range="19-30"):
+        self.param.update(age_sex=age_sex, age_range=age_range)
+
+    def set_constraints(self):
+        constraints = Constraints()
+        constraints.add_nutrient_constraints_from_json(
+            json_path=self.constraints_file_path,
+            age_sex=self.age_sex,
+            age_range=self.age_range,
+        )
+        self.constraints = constraints
+
+    @param.depends("age_sex", "age_range", watch=True)
     def set_constraint_widgets(self):
+        self.set_constraints()
         constraint_widgets = []
         for (
             nutrient_nbrs,
@@ -105,17 +126,19 @@ class NutrientConstraints(Viewer):
             )
         self.constraint_widgets = constraint_widgets
 
-    @param.depends("constraint_widgets", watch=True)
+    @param.depends("constraint_widgets")
     def _layout(self):
         return pn.Column(
-            self.constraint_checkboxes,
-            pn.FlexBox(
-                *self.constraint_widgets,
-                sizing_mode="stretch_width",
-                flex_direction="row",
+            self.constraint_selector,
+            pn.Column(
+                pn.FlexBox(
+                    *self.constraint_widgets,
+                    sizing_mode="stretch_width",
+                    flex_direction="row",
+                ),
+                height=400,
+                scroll=True,
             ),
-            height=800,
-            scroll=True,
         )
 
     def get_constraints(self):

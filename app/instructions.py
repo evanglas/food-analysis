@@ -14,7 +14,7 @@ instructions_instructions_markdown = pn.pane.Markdown(
     """
 
     ## Instructions
-    1. Select the foods you'd be willing to include in your diet.
+    1. Select the foods to include in the optimization.
     2. Set your nutritional constraints.
     3. Click **Optimize**!
 
@@ -26,11 +26,11 @@ instructions_about_markdown = pn.pane.Markdown(
     """
 
     ## How it works?
-    - The app uses the [PyFoodOpt](https://coin-or.github.io/pulp/) library to solve a linear programming problem.
+    - The app solves a linear program using the [PuLP](https://coin-or.github.io/pulp/) library.
     - The problem is to minimize the cost of the diet while satisfying all of the nutritional constraints.
     - Nutritional data is sourced from the [USDA Food Database](https://usda.gov).
-    - Pricing data has been set manually to reflect real-world wholesale prices. Pricing assumptions may be changed below.
-    - See [about](/about) for more information.
+    - Pricing data has been set manually to reflect real-world wholesale prices in the United States. Pricing assumptions may be changed below.
+    - Nutritional constraints were sourced from multiple sources, including [here](https://odphp.health.gov/sites/default/files/2019-09/Appendix-E3-1-Table-A4.pdf). Nutritional constraints may also be modified below.
 
     """
 )

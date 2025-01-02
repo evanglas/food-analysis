@@ -74,7 +74,7 @@ class OptimizationFailInfo(Viewer):
             pn.widgets.ButtonIcon(icon="alert-hexagon", disabled=True, size="100px"),
             OPTIMIZATION_FAIL_MARKDOWN,
             SLACK_VARIABLES_EXPLANATION_MARKDOWN,
-            pn.Accordion(("Slack Variables", self.get_slack_vars_tabulator())),
+            pn.Accordion(("Nonzero Slack Variables", self.get_slack_vars_tabulator())),
         )
 
     def __panel__(self):
@@ -296,11 +296,16 @@ class ResultsContainer(Viewer):
 
     def __init__(self, **params):
         super().__init__(**params)
-
-    def _layout(self):
-        container_header = pn.pane.Markdown("# Results", sizing_mode="stretch_width")
-        return pn.Column(
-            container_header,
+        self.n_results = 0
+        self.container_header = pn.pane.Markdown(
+            "# Results", sizing_mode="stretch_width"
+        )
+        self.container_instructions = pn.pane.Markdown(
+            "Optimization results will appear here after clicking the **Optimize** button."
+        )
+        self.layout = pn.Column(
+            self.container_header,
+            self.container_instructions,
             self.results_tabs,
             width=CONFIG_RESULTS_WIDTH,
             margin=(25, 0),
@@ -311,8 +316,14 @@ class ResultsContainer(Viewer):
             },
         )
 
+    def _layout(self):
+        return self.layout
+
     def add_result(self, results: Results):
+        if self.n_results == 0:
+            self.layout.pop(1)
         self.results_tabs.add_result(results)
+        self.n_results += 1
 
     def __panel__(self):
         return self._layout

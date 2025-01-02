@@ -35,9 +35,10 @@ instructions_wrapper = pn.FlexBox(
 
 
 nutrient_constraints_widgets = NutrientConstraints(
-    constraints=constraints,
+    constraints_file_path="data/nutrient_constraints_full_1.json",
+    age_sex="male",
+    age_range="19-30",
     nutrient_bank=nb,
-    constraint_checkbox_on_click=lambda x: print(x),
 )
 
 nutrient_config_tab = pn.FlexBox(
@@ -99,7 +100,7 @@ app_content = pn.FlexBox(
 )
 
 app = pn.FlexBox(
-    navbar,
+    # navbar,
     app_content,
     flex_direction="column",
     align_items="center",

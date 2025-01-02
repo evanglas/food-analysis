@@ -126,6 +126,7 @@ class FoodTabulatorContainer(FoodsContainer):
                 # "active": "Active",
             },
             stylesheets=[TABULATOR_STYLESHEET],
+            height=300,
         )
         tabulator.selection = list(tabulator.value.index)
         return tabulator
@@ -233,7 +234,6 @@ class FoodBoxesContainer(FoodsContainer):
                 justify_content="flex-start",
                 sizing_mode="stretch_width",
             ),
-            height=800,
             scroll=True,
         )
 
@@ -310,7 +310,7 @@ class FoodConfig(Viewer):
             sizing_mode="stretch_width",
         )
 
-        food_config_tab = pn.FlexBox(
+        food_config_tab = pn.Column(
             self.restriction_checks,
             pn.Row(self.food_config_search_box, self.search_box_clear_button),
             food_config_foods,
